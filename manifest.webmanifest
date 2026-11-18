@@ -1,15 +1,23 @@
+
 {
-  "name": "PairHi \u2013 Serious Relationships",
+  "name": "PairHi - Serious Relationships",
   "short_name": "PairHi",
-  "description": "Discover meaningful connections for serious relationships and marriage.",
+  "description": "Meet genuine people for serious relationships and marriage.",
   "start_url": "./",
+  "scope": "./",
   "display": "standalone",
   "background_color": "#fff8fb",
   "theme_color": "#ed2b83",
   "icons": [
     {
-      "src": "assets/pairhi-logo.png",
-      "sizes": "any",
+      "src": "assets/pairhi-logo-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/pairhi-logo-512.png",
+      "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     }
