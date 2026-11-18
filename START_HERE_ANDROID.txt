@@ -1,0 +1,140 @@
+PAIRHI — START HERE (ANDROID PHONE ONLY)
+==========================================
+
+READ THIS FIRST
+---------------
+You do NOT need to understand coding to upload this demo. Go slowly and do one step at a time.
+This creates a public demo website. It does NOT create the finished dating app.
+
+PART A — GET THE FILES READY
+----------------------------
+1. Download the PairHi ZIP file from this chat.
+2. Open your Android phone's Files / My Files app.
+3. Open Downloads.
+4. Tap the ZIP file and choose Extract / Unzip.
+5. You should see a folder named PairHi.
+6. Open that folder and check that you can see index.html, styles.css,
+   app.js, README.md and manifest.webmanifest.
+
+PART B — CREATE A GITHUB ACCOUNT
+--------------------------------
+1. Open Chrome.
+2. Type https://github.com and open the official website.
+3. Tap Sign up.
+4. Enter your email address, create a username and a strong password.
+5. Complete the email verification.
+6. Save your password somewhere safe. Never share it with anyone.
+7. Sign in.
+
+PART C — CREATE YOUR PAIRHI REPOSITORY
+--------------------------------------
+1. On GitHub, tap the + sign (or open the menu) and choose New repository.
+2. Repository name: pairhi-demo
+3. Description: PairHi serious relationship website prototype
+4. Choose Public if you want a free public demo website. Choose Private if
+   you only want to store the code for now; free hosting options may differ.
+5. Tick Add a README only if GitHub asks and you have not already got one.
+6. Tap Create repository.
+
+PART D — UPLOAD THE PROJECT FILES
+---------------------------------
+1. Open the new pairhi-demo repository.
+2. Tap Add file, then Upload files.
+3. Open your phone's file picker.
+4. Go into the extracted PairHi folder.
+5. Select the files and folders INSIDE PairHi (index.html, styles.css,
+   app.js, manifest.webmanifest, sw.js, README.md, supabase_schema.sql,
+   assets folder). Upload the contents, not an extra outer PairHi folder
+   if possible.
+6. Wait until the upload finishes.
+7. Scroll down to Commit changes.
+8. Write: Upload PairHi demo files
+9. Tap Commit changes.
+10. Check that index.html is visible in the main repository page.
+
+If selecting many files is difficult on your phone:
+- In Chrome, tap the three dots and enable Desktop site.
+- Rotate the phone to landscape if the upload page is cramped.
+- You can upload files in smaller batches. Keep the folder structure:
+  assets/pairhi-logo.png and assets/pairhi-brand-board.png must stay inside
+  an assets folder.
+
+PART E — PUBLISH THE DEMO WITH GITHUB PAGES
+-------------------------------------------
+1. In your repository, open Settings.
+2. Find Pages in the left-side menu (on mobile, scroll the settings menu).
+3. Under Build and deployment, choose Deploy from a branch.
+4. Select branch main and folder /(root).
+5. Tap Save.
+6. Wait a few minutes and refresh the Pages screen.
+7. GitHub will show a website address similar to:
+   https://YOUR-USERNAME.github.io/pairhi-demo/
+8. Tap that address to open your PairHi demo.
+9. If the page is not ready, wait 5–10 minutes and refresh.
+
+If GitHub Pages is not offered or you cannot find it, do not panic:
+you can leave the files in GitHub and ask for help with the hosting screen.
+
+PART F — INSTALL THE DEMO ON YOUR ANDROID PHONE
+------------------------------------------------
+1. Open the published PairHi website in Chrome.
+2. Tap the three dots at the top-right.
+3. Choose Install app or Add to Home screen, if offered.
+4. Tap Install / Add.
+This is a website/PWA shortcut, NOT a Play Store Android application.
+
+PART G — WHAT TO BUILD BEFORE REAL PEOPLE CAN USE IT
+----------------------------------------------------
+Do not launch public registrations yet. The next development stages are:
+
+1. Backend and accounts:
+   - Create a Supabase project.
+   - Add secure email sign-up, login, password reset and 18+ age gate.
+   - Configure database security and test with two separate accounts.
+
+2. Verification:
+   - Keep new profiles private while pending review.
+   - Define exactly what the badge means.
+   - Email/phone OTP only proves access to that email/phone.
+   - Selfie checks do not automatically prove government identity.
+   - Do not collect or store Aadhaar or other government ID copies yourself.
+
+3. Profiles and discovery:
+   - Profile creation, photos, city, intentions and preferences.
+   - Public discovery must return only approved profiles and safe fields.
+   - Never show date of birth, email, phone number or exact location to other users.
+
+4. Matching:
+   - 10 free likes for non-subscribers.
+   - Paid membership unlocks unlimited likes.
+   - The server creates a match only when both users have liked each other.
+
+5. Chat and calls:
+   - Private chat only between matched users.
+   - Voice/video call signalling and abuse controls.
+   - Calls may create hosting/TURN costs. Do not promise unlimited free calls
+     until costs and capacity are tested.
+
+6. Safety:
+   - Block, report, unmatch, moderation queue, appeals, rate limits,
+     anti-scam checks, support contact and account deletion.
+   - Make the service adults-only (18+).
+   - Publish privacy policy, terms, consent and grievance contact details.
+
+7. Payments:
+   - Add a payment provider only after the product is safe and tested.
+   - Proposed plans: ₹99 / 1 month, ₹199 / 6 months, ₹399 / 12 months.
+   - Explain renewal, cancellation, refunds and taxes clearly.
+
+8. Launch:
+   - Test with a small invited adult pilot group.
+   - Have a security/privacy review before taking real personal data.
+   - Monitor reports and support requests daily.
+
+PLEASE REMEMBER
+----------------
+- GitHub stores your project files; it does not build the complete app for you.
+- This ZIP is a prototype and does not yet have working real accounts or chat.
+- Free hosting/database plans have limits and can change.
+- Never send anyone your passwords, OTPs, secret keys or recovery codes.
+- Never paste a Supabase service_role key into app.js or any public website file.

@@ -1,0 +1,17 @@
+{
+  "name": "PairHi \u2013 Serious Relationships",
+  "short_name": "PairHi",
+  "description": "Discover meaningful connections for serious relationships and marriage.",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#fff8fb",
+  "theme_color": "#ed2b83",
+  "icons": [
+    {
+      "src": "assets/pairhi-logo.png",
+      "sizes": "any",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

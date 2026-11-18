@@ -1,0 +1,1 @@
+PAIRHI STATUS: FRONT-END DEMO ONLY. NOT READY FOR REAL USERS.\nNo live registration, real verification, mutual-match backend, chat, calls, payments, moderation or account deletion.\nDo not collect real personal or sensitive information until security, privacy and safety work is complete.\n

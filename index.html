@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#ed2b83">
+  <meta name="description" content="PairHi helps adults discover genuine connections for serious relationships and marriage. Explore mutual matches and build meaningful relationships.">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="styles.css">\n  <link rel="icon" type="image/png" href="assets/pairhi-logo.png">\n  <meta property="og:title" content="PairHi – Real People. Real Profiles. Real Connections.">\n  <meta property="og:description" content="A serious relationship and marriage-focused community concept with mutual matching.">\n  <meta property="og:type" content="website">
+  <title>PairHi – Serious Dating & Marriage Connections</title>
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="#" aria-label="PairHi home"><span class="brandmark">♥</span><span>PairHi<small>Real People. Real Profiles. Real Connections.</small></span></a>
+  <nav><a href="#discover">Discover</a><a href="#how">How it works</a><button class="outline" id="profileBtn">My profile</button></nav>
+</header>
+<main>
+  <section class="hero">
+    <div><span class="eyebrow">MEANINGFUL CONNECTIONS START HERE</span>
+      <h1>Less swiping.<br><em>More meaning.</em></h1>
+      <p>Meet people who share your values, relationship goals and hopes for the future.</p>
+      <a class="primary" href="#discover">Explore profiles <span>→</span></a>
+      <p class="micro">Prototype demo · All profiles shown are fictional examples</p>
+    </div>
+    <div class="hero-art"><div class="orbit"></div><div class="heart">♡</div><div class="floating f1">Shared values</div><div class="floating f2">A future together</div><div class="floating f3">Real connections</div></div>
+  </section>
+
+  <section class="trust-strip"><span>♡ Values-led matching</span><span>⌂ India-first community</span><span>✓ Safety by design</span></section>
+
+  <section id="discover" class="discover">
+    <div class="section-heading"><div><span class="eyebrow">YOUR NEXT CHAPTER</span><h2>People to discover</h2><p>Explore sample profiles and try the matching experience.</p></div>
+      <label class="filter">Looking for <select id="intentFilter"><option value="all">All serious connections</option><option value="Marriage">Marriage</option><option value="Long-term relationship">Long-term relationship</option></select></label>
+    </div>
+    <div class="deck-wrap">
+      <div id="card" class="person-card">
+        <div class="photo" id="photo"><span class="verified">✓ Demo profile</span><span class="photo-number" id="photoNumber">01 / 04</span></div>
+        <div class="person-info"><div><h3 id="personName">Aarohi, 28</h3><p id="personLocation">Delhi · India</p></div><span class="intent" id="personIntent">Marriage</span></div>
+        <p class="bio" id="personBio"></p>
+        <div class="tags" id="personTags"></div>
+        <div class="compat"><span>Values & lifestyle</span><strong id="compatScore">Good potential</strong></div>
+        <div class="actions"><button class="skip" id="skipBtn" aria-label="Pass">×</button><button class="like" id="likeBtn">♡ <span>Interested</span></button></div>
+      </div>
+      <aside class="side-note"><span class="eyebrow">A BETTER WAY TO MEET</span><h3>Start with what matters.</h3><p>Profiles are designed around relationship intentions, values, lifestyle and future expectations—not just photographs.</p><div class="note-line">01 <span>Discover people</span></div><div class="note-line">02 <span>Express mutual interest</span></div><div class="note-line">03 <span>Start a respectful conversation</span></div></aside>
+    </div>
+    <div class="feedback" id="feedback" role="status">Choose “Interested” or pass to explore the demo.</div>
+  </section>
+
+  <section id="how" class="how"><span class="eyebrow">BUILT FOR INTENTION</span><h2>Connection with clarity.</h2><div class="feature-grid">
+    <article><b>01</b><h3>Share your intentions</h3><p>Be clear about whether you are seeking marriage or a committed long-term relationship.</p></article>
+    <article><b>02</b><h3>Discover compatibility</h3><p>Compare interests, values and lifestyle preferences before deciding to connect.</p></article>
+    <article><b>03</b><h3>Connect by consent</h3><p>Only mutual interest should open a conversation. Block and report tools belong in the real product.</p></article>
+  </div></section>
+
+
+  <section id="plans" class="how pricing">
+    <span class="eyebrow">SIMPLE, LOW-COST MEMBERSHIP</span>
+    <h2>Choose how you want to discover.</h2>
+    <p>Everyone can start with 10 free likes/swipes. Membership is planned to unlock unlimited discovery.</p>
+    <div class="feature-grid">
+      <article><b>1 MONTH</b><h3>₹99</h3><p>Unlimited likes during the active plan (planned feature).</p></article>
+      <article><b>6 MONTHS</b><h3>₹199</h3><p>Longer discovery at a low introductory price (planned feature).</p></article>
+      <article><b>12 MONTHS</b><h3>₹399</h3><p>Annual membership for people serious about finding a partner (planned feature).</p></article>
+    </div>
+    <p class="micro">Pricing is a proposed plan only. Payments and subscriptions are not active in this demo. Mutual-match chat and calls are planned to be free for both matched members.</p>
+  </section>
+
+  <section class="cta"><div><span class="eyebrow">PAIRHI</span><h2>A thoughtful beginning<br>to something meaningful.</h2></div><a class="primary" href="#discover">Try the demo →</a></section>
+</main>
+<footer><strong>PairHi</strong><span>Concept MVP · Demo profiles are fictional · Not yet accepting real registrations</span><span>© <span id="year"></span> PairHi</span></footer>
+
+<dialog id="profileDialog"><form method="dialog" class="dialog-inner"><button class="close" aria-label="Close">×</button><span class="eyebrow">PROFILE PREVIEW</span><h2>Your story matters.</h2><p>This prototype uses sample profiles only. Real registration, identity checks, photo uploads and secure matching will be connected to the backend in the next development stage.</p><button class="primary">Got it</button></form></dialog>
+<script src="app.js"></script>
+</body></html>
