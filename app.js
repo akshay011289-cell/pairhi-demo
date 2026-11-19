@@ -10,52 +10,82 @@ const supabaseClient = window.supabase.createClient(
 const $ = id => document.getElementById(id);
 
 function showMessage(message) {
-  $("authMessage").textContent = message;
+  const messageBox = $("authMessage");
+  if (messageBox) messageBox.textContent = message;
 }
 
-// Save or find the user's database profile
+// ======================================
+// PAIRHI PROFILE DATABASE FUNCTION
+// ======================================
+
 async function ensureUserProfile(user) {
   const metadata = user.user_metadata || {};
 
+  const profileData = {
+    display_name: metadata.display_name || "PairHi Member",
+    city: metadata.city || "",
+    relationship_goal:
+      metadata.relationship_goal || "Marriage"
+  };
+
+  showMessage("Checking your PairHi profile...");
+
+  // Find existing profile
   const { data: existing, error: readError } =
     await supabaseClient
       .from("profiles")
-      .select("id, display_name, city")
+      .select("id")
       .eq("id", user.id)
       .maybeSingle();
 
   if (readError) throw readError;
 
   if (existing) {
-    return existing;
+    // Update existing empty profile
+    const { error: updateError } =
+      await supabaseClient
+        .from("profiles")
+        .update(profileData)
+        .eq("id", user.id);
+
+    if (updateError) throw updateError;
+
+  } else {
+    // Create a new profile
+    const { error: insertError } =
+      await supabaseClient
+        .from("profiles")
+        .insert({
+          id: user.id,
+          ...profileData
+        });
+
+    if (insertError) throw insertError;
   }
 
-  const { error: insertError } =
-    await supabaseClient
-      .from("profiles")
-      .insert({
-        id: user.id,
-        display_name: metadata.display_name || "PairHi Member",
-        city: metadata.city || "",
-        relationship_goal: metadata.relationship_goal || "Marriage"
-      });
-
-  if (insertError) throw insertError;
-
+  // Verify saved profile
   const { data: saved, error: verifyError } =
     await supabaseClient
       .from("profiles")
-      .select("id, display_name, city")
+      .select("id, display_name, city, relationship_goal")
       .eq("id", user.id)
       .maybeSingle();
 
   if (verifyError) throw verifyError;
-  if (!saved) throw new Error("Profile could not be verified.");
+
+  if (!saved || !saved.display_name || !saved.city) {
+    throw new Error(
+      "Profile details are missing. Please check your registration information."
+    );
+  }
 
   return saved;
 }
 
-// Registration
+// ======================================
+// CREATE ACCOUNT
+// ======================================
+
 $("signupBtn").addEventListener("click", async () => {
   const name = $("authName").value.trim();
   const city = $("authCity").value.trim();
@@ -75,6 +105,7 @@ $("signupBtn").addEventListener("click", async () => {
 
   try {
     $("signupBtn").disabled = true;
+
     showMessage("Creating your PairHi account...");
 
     const { data, error } =
@@ -95,26 +126,33 @@ $("signupBtn").addEventListener("click", async () => {
     if (error) throw error;
 
     if (data.session && data.user) {
-      try {
-        await ensureUserProfile(data.user);
-        showMessage("Account created and profile saved successfully!");
-        $("logoutBtn").hidden = false;
-      } catch (profileError) {
-        showMessage("Account created, but profile saving failed: " + profileError.message);
-      }
+      await ensureUserProfile(data.user);
+
+      $("logoutBtn").hidden = false;
+
+      showMessage(
+        "Account created successfully! Your PairHi profile is saved."
+      );
+
     } else {
-      showMessage("Registration successful! Check your email and verify your account, then log in.");
+      showMessage(
+        "Registration successful! Please verify your email and then log in."
+      );
     }
 
   } catch (error) {
     showMessage("Registration error: " + error.message);
-    console.error(error);
+    console.error("PairHi registration error:", error);
+
   } finally {
     $("signupBtn").disabled = false;
   }
 });
 
-// Login
+// ======================================
+// LOGIN
+// ======================================
+
 $("loginBtn").addEventListener("click", async () => {
   const email = $("authEmail").value.trim();
   const password = $("authPassword").value;
@@ -126,7 +164,8 @@ $("loginBtn").addEventListener("click", async () => {
 
   try {
     $("loginBtn").disabled = true;
-    showMessage("Logging in...");
+
+    showMessage("Logging in to PairHi...");
 
     const { data, error } =
       await supabaseClient.auth.signInWithPassword({
@@ -136,40 +175,50 @@ $("loginBtn").addEventListener("click", async () => {
 
     if (error) throw error;
 
-    await ensureUserProfile(data.user);
+    const savedProfile = await ensureUserProfile(data.user);
 
     $("logoutBtn").hidden = false;
 
     showMessage(
       "Welcome to PairHi, " +
-      (data.user.user_metadata.display_name || "Member") +
+      savedProfile.display_name +
       "! Your profile is saved."
     );
 
   } catch (error) {
     showMessage("Login error: " + error.message);
-    console.error(error);
+    console.error("PairHi login error:", error);
+
   } finally {
     $("loginBtn").disabled = false;
   }
 });
 
-// Logout
+// ======================================
+// LOGOUT
+// ======================================
+
 $("logoutBtn").addEventListener("click", async () => {
   try {
-    const { error } = await supabaseClient.auth.signOut();
+    const { error } =
+      await supabaseClient.auth.signOut();
 
     if (error) throw error;
 
     $("logoutBtn").hidden = true;
+
     showMessage("You have logged out successfully.");
 
   } catch (error) {
     showMessage("Logout error: " + error.message);
+    console.error(error);
   }
 });
 
-// Restore an existing login
+// ======================================
+// RESTORE EXISTING LOGIN
+// ======================================
+
 async function checkExistingLogin() {
   try {
     const { data, error } =
@@ -181,10 +230,22 @@ async function checkExistingLogin() {
       $("logoutBtn").hidden = false;
 
       try {
-        await ensureUserProfile(data.session.user);
-        showMessage("You are logged in and your profile is connected.");
+        const savedProfile =
+          await ensureUserProfile(data.session.user);
+
+        showMessage(
+          "Welcome back, " +
+          savedProfile.display_name +
+          "! Your profile is connected."
+        );
+
       } catch (profileError) {
-        showMessage("You are logged in, but profile saving failed: " + profileError.message);
+        showMessage(
+          "You are logged in, but profile saving failed: " +
+          profileError.message
+        );
+
+        console.error(profileError);
       }
 
     } else {
@@ -197,31 +258,46 @@ async function checkExistingLogin() {
   }
 }
 
-// Original PairHi demo profiles
+// ======================================
+// PAIRHI DEMO DISCOVERY PROFILES
+// ======================================
+
 const profiles = [
  {
-  name:"Aarohi",age:28,city:"Delhi",intent:"Marriage",
+  name:"Aarohi",
+  age:28,
+  city:"Delhi",
+  intent:"Marriage",
   bio:"I value kindness, family, honest communication and building a life with shared purpose. I enjoy books, travel and trying new food.",
   tags:["Family-oriented","Travel","Reading"],
   score:"Strong values overlap",
   photo:"linear-gradient(140deg,#d8a6a5,#92566b)"
  },
  {
-  name:"Rohan",age:30,city:"Jaipur",intent:"Long-term relationship",
+  name:"Rohan",
+  age:30,
+  city:"Jaipur",
+  intent:"Long-term relationship",
   bio:"Grounded, curious and close to my family. Looking for a respectful partnership where both people grow together.",
   tags:["Entrepreneurship","Fitness","Culture"],
   score:"Good potential",
   photo:"linear-gradient(140deg,#c5a18b,#805e52)"
  },
  {
-  name:"Meera",age:27,city:"Pune",intent:"Marriage",
+  name:"Meera",
+  age:27,
+  city:"Pune",
+  intent:"Marriage",
   bio:"A thoughtful person who loves music, meaningful conversations and weekend nature escapes. Honesty matters most to me.",
   tags:["Music","Nature","Family"],
   score:"Strong values overlap",
   photo:"linear-gradient(140deg,#d6a7b8,#a45e7d)"
  },
  {
-  name:"Kabir",age:31,city:"Mumbai",intent:"Long-term relationship",
+  name:"Kabir",
+  age:31,
+  city:"Mumbai",
+  intent:"Long-term relationship",
   bio:"I believe a strong relationship is built on friendship, trust and laughter. Hoping to meet someone intentional and kind.",
   tags:["Design","Cooking","Films"],
   score:"Good potential",
@@ -240,14 +316,19 @@ function render() {
   );
 
   if (!visible.length) {
-    $("feedback").textContent = "No sample profiles in this category.";
+    $("feedback").textContent =
+      "No sample profiles in this category.";
     return;
   }
 
   current = visible[index % visible.length];
 
-  $("personName").textContent = `${current.name}, ${current.age}`;
-  $("personLocation").textContent = `${current.city} · India`;
+  $("personName").textContent =
+    `${current.name}, ${current.age}`;
+
+  $("personLocation").textContent =
+    `${current.city} · India`;
+
   $("personIntent").textContent = current.intent;
   $("personBio").textContent = current.bio;
 
@@ -257,6 +338,7 @@ function render() {
 
   $("compatScore").textContent = current.score;
   $("photo").style.background = current.photo;
+
   $("photoNumber").textContent =
     `${(index % visible.length) + 1} / ${visible.length}`;
 }
@@ -267,30 +349,43 @@ function advance(message) {
   render();
 }
 
+// Skip profile
 $("skipBtn").addEventListener("click", () => {
-  advance("Passed on this sample profile. Your next discovery is ready.");
+  advance(
+    "Passed on this sample profile. Your next discovery is ready."
+  );
 });
 
+// Like profile (currently demo only)
 $("likeBtn").addEventListener("click", () => {
-  advance(`Interest recorded in this local demo for ${current.name}. Real mutual matching requires registered users.`);
+  advance(
+    `Interest recorded in this local demo for ${current.name}. Real mutual matching requires registered users.`
+  );
 });
 
+// Discovery filter
 $("intentFilter").addEventListener("change", () => {
   index = 0;
   render();
+
   $("feedback").textContent =
     "Showing profiles for your selected intention.";
 });
 
+// Footer year
 $("year").textContent = new Date().getFullYear();
 
+// Start application
 render();
 checkExistingLogin();
 
+// Service worker
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
     navigator.serviceWorker
       .register("./sw.js")
-      .catch(error => console.log("Service worker:", error));
+      .catch(error =>
+        console.log("Service worker:", error)
+      );
   });
 }
