@@ -1,61 +1,38 @@
-
 const SUPABASE_URL = "https://nckkelnaxivmynmsktoa.supabase.co";
 
 const SUPABASE_KEY = "sb_publishable_xlqXiXGxnQ5CXfSKr5DpyQ_WPMIgibr";
 
-const supabaseClient = window.supabase.createClient(
-  SUPABASE_URL,
-  SUPABASE_KEY
-);
-
-console.log("PairHi Supabase connection initialized");
+let supabaseClient;
 
 const testBox = document.createElement("div");
+
 testBox.style.cssText =
-  "position:fixed;bottom:10px;left:10px;right:10px;padding:12px;background:white;border:2px solid #8f3658;border-radius:12px;z-index:99999;text-align:center;color:#29232a;font-size:13px";
-
-testBox.textContent = "PairHi: Testing Supabase...";
-document.body.appendChild(testBox);
-
-supabaseClient.from("profiles").select("id").limit(1)
-  .then(({ data, error }) => {
-    testBox.textContent = error
-      ? "Supabase database error: " + error.message
-      : "SUCCESS! PairHi connected to Supabase.";
-  })
-  .catch(error => {
-    testBox.textContent = "Connection failed: " + error.message;
-  });
-
-const statusBox = document.createElement("div");
-statusBox.style.cssText =
   "position:fixed;bottom:10px;left:10px;right:10px;padding:14px;background:white;border:2px solid #8f3658;border-radius:12px;z-index:99999;text-align:center;color:#29232a;font-size:13px";
 
-statusBox.textContent = "PairHi: Checking Supabase...";
-document.body.appendChild(statusBox);
+testBox.textContent = "PairHi: Checking Supabase...";
+document.body.appendChild(testBox);
 
 if (!window.supabase) {
-  statusBox.textContent =
-    "ERROR: Supabase library did not load. Check index.html.";
+  testBox.textContent =
+    "ERROR: Supabase library did not load.";
 } else {
-  const SUPABASE_URL =
-    "https://nckkelnaxivmynmsktoa.supabase.co";
-
-  const SUPABASE_KEY = "sb_publishable_xlqXiXGxnQ5CXfSKr5DpyQ_WPMIgibr";
-
-  const supabaseClient = window.supabase.createClient(
+  supabaseClient = window.supabase.createClient(
     SUPABASE_URL,
     SUPABASE_KEY
   );
 
-  supabaseClient.from("profiles").select("id").limit(1)
+  supabaseClient
+    .from("profiles")
+    .select("id")
+    .limit(1)
     .then(({ data, error }) => {
-      statusBox.textContent = error
+      testBox.textContent = error
         ? "DATABASE ERROR: " + error.message
         : "SUCCESS! PairHi connected to Supabase.";
     })
     .catch(error => {
-      statusBox.textContent = "ERROR: " + error.message;
+      testBox.textContent =
+        "CONNECTION ERROR: " + error.message;
     });
 }
 const profiles = [
