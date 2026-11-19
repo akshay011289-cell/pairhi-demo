@@ -46,7 +46,13 @@ async function ensureUserProfile(user) {
         metadata.relationship_goal || "Marriage"
     });
 
-  if (insertError) throw insertError;
+  if (insertError) {
+  console.error("PROFILE INSERT ERROR:", insertError);
+  showMessage("PROFILE ERROR: " + insertError.message);
+  throw insertError;
+}
+
+showMessage("Your PairHi profile has been saved!");
 }
 
 // Registration
