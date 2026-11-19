@@ -21,12 +21,21 @@ function showMessage(message) {
 async function ensureUserProfile(user) {
   const metadata = user.user_metadata || {};
 
-  const profileData = {
-    display_name: metadata.display_name || "PairHi Member",
-    city: metadata.city || "",
-    relationship_goal:
-      metadata.relationship_goal || "Marriage"
-  };
+const goalMap = {
+  "Marriage": "marriage",
+  "Long-term relationship": "serious_relationship",
+  "Friendship": "friendship",
+  "serious_relationship": "serious_relationship",
+  "marriage": "marriage",
+  "friendship": "friendship"
+};
+
+const profileData = {
+  display_name: metadata.display_name || "PairHi Member",
+  city: metadata.city || "",
+  relationship_goal:
+    goalMap[metadata.relationship_goal] || "marriage"
+};
 
   showMessage("Checking your PairHi profile...");
 
