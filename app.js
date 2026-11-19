@@ -22,7 +22,81 @@ function openProfileDialog() {
 }
 
 // Create a database profile after the user has logged in.
+
 async function ensureUserProfile(user) {
+  showMessage("Checking your PairHi database profile...");
+
+  try {
+    const { data: existing, error: readError } =
+      await supabaseClient
+        .from("profiles")
+        .select("id, display_name, city")
+        .eq("id", user.id)
+        .maybeSingle();
+
+    if (readError) throw readError;
+
+    if (existing) {
+      showMessage(
+        "PROFILE FOUND! " +
+        existing.display_name +
+        " | " + existing.city
+      );
+      return;
+    }
+
+    showMessage("No profile found. Creating your profile...");
+
+    const metadata = user.user_metadata || {};
+
+    const { error: insertError } = await supabaseClient
+      .from("profiles")
+      .insert({
+        id: user.id,
+        display_name: metadata.display_name || "PairHi Member",
+        city: metadata.city || "",
+        relationship_goal:
+          metadata.relationship_goal || "Marriage"
+      });
+
+    if (insertError) throw insertError;
+
+    showMessage("Profile inserted. Verifying database record...");
+
+    const { data: saved, error: verifyError } =
+      await supabaseClient
+        .from("profiles")
+        .select("id, display_name, city")
+        .eq("id", user.id)
+        .maybeSingle();
+
+    if (verifyError) throw verifyError;
+
+    if (!saved) {
+      throw new Error(
+        "Insert returned no error, but the profile could not be found."
+      );
+    }
+
+    showMessage(
+      "SUCCESS! Your profile is saved: " +
+      saved.display_name + " | " + saved.city
+    );
+
+  } catch (error) {
+    console.error("PAIRHI PROFILE DIAGNOSTIC:", error);
+
+    showMessage(
+      "PROFILE ERROR: " +
+      error.message +
+      (error.code ? " | Code: " + error.code : "") +
+      (error.details ? " | Details: " + error.details : "")
+    );
+
+    throw error;
+  }
+}
+
   const metadata = user.user_metadata || {};
 
   const { data: existingProfile, error: readError } =
