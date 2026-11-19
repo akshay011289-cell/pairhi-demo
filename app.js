@@ -1,7 +1,7 @@
 
 const SUPABASE_URL = "https://nckkelnaxivmynmsktoa.supabase.co";
 
-const SUPABASE_KEY = "YOUR_ACTUAL_PUBLISHABLE_KEY";
+const SUPABASE_KEY = "sb_publishable_xlqXiXGxnQ5CXfSKr5DpyQ_WPMIgibr";
 
 const supabaseClient = window.supabase.createClient(
   SUPABASE_URL,
@@ -41,7 +41,7 @@ if (!window.supabase) {
   const SUPABASE_URL =
     "https://nckkelnaxivmynmsktoa.supabase.co";
 
-  const SUPABASE_KEY = "YOUR_PUBLISHABLE_KEY";
+  const SUPABASE_KEY = "sb_publishable_xlqXiXGxnQ5CXfSKr5DpyQ_WPMIgibr";
 
   const supabaseClient = window.supabase.createClient(
     SUPABASE_URL,
