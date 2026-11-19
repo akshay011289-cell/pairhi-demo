@@ -1,3 +1,31 @@
+
+const SUPABASE_URL = "https://nckkelnaxivmynmsktoa.supabase.co";
+
+const SUPABASE_KEY = "YOUR_ACTUAL_PUBLISHABLE_KEY";
+
+const supabaseClient = window.supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_KEY
+);
+
+console.log("PairHi Supabase connection initialized");
+
+const testBox = document.createElement("div");
+testBox.style.cssText =
+  "position:fixed;bottom:10px;left:10px;right:10px;padding:12px;background:white;border:2px solid #8f3658;border-radius:12px;z-index:99999;text-align:center;color:#29232a;font-size:13px";
+
+testBox.textContent = "PairHi: Testing Supabase...";
+document.body.appendChild(testBox);
+
+supabaseClient.from("profiles").select("id").limit(1)
+  .then(({ data, error }) => {
+    testBox.textContent = error
+      ? "Supabase database error: " + error.message
+      : "SUCCESS! PairHi connected to Supabase.";
+  })
+  .catch(error => {
+    testBox.textContent = "Connection failed: " + error.message;
+  });
 const profiles = [
  {name:"Aarohi",age:28,city:"Delhi",intent:"Marriage",bio:"I value kindness, family, honest communication and building a life with shared purpose. I enjoy books, travel and trying new food.",tags:["Family-oriented","Travel","Reading"],score:"Strong values overlap",photo:"linear-gradient(140deg,#d8a6a5,#92566b)"},
 
