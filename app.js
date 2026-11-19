@@ -94,7 +94,18 @@ $("signupBtn").addEventListener("click", async () => {
     if (error) throw error;
 
     if (data.session && data.user) {
-      await ensureUserProfile(data.user);
+      $("logoutBtn").hidden = false;
+
+try {
+  await ensureUserProfile(data.user);
+  showMessage("Welcome to PairHi! Your profile is connected.");
+} catch (profileError) {
+  showMessage(
+    "Login successful, but profile saving failed: " +
+    profileError.message
+  );
+  console.error("Profile error:", profileError);
+}
       showMessage("Account created! Your profile is saved.");
       $("logoutBtn").hidden = false;
     } else {
