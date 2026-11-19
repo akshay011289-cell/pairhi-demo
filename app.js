@@ -1,5 +1,16 @@
 const profiles = [
  {name:"Aarohi",age:28,city:"Delhi",intent:"Marriage",bio:"I value kindness, family, honest communication and building a life with shared purpose. I enjoy books, travel and trying new food.",tags:["Family-oriented","Travel","Reading"],score:"Strong values overlap",photo:"linear-gradient(140deg,#d8a6a5,#92566b)"},
+
+const SUPABASE_URL = "https://nckkelnaxivmynmsktoa.supabase.co";
+
+const SUPABASE_KEY = "PASTE_YOUR_PUBLISHABLE_KEY_HERE";
+
+const supabaseClient = window.supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_KEY
+);
+
+console.log("PairHi Supabase connection initialized");
  {name:"Rohan",age:30,city:"Jaipur",intent:"Long-term relationship",bio:"Grounded, curious and close to my family. Looking for a respectful partnership where both people grow together.",tags:["Entrepreneurship","Fitness","Culture"],score:"Good potential",photo:"linear-gradient(140deg,#c5a18b,#805e52)"},
  {name:"Meera",age:27,city:"Pune",intent:"Marriage",bio:"A thoughtful person who loves music, meaningful conversations and weekend nature escapes. Honesty matters most to me.",tags:["Music","Nature","Family"],score:"Strong values overlap",photo:"linear-gradient(140deg,#d6a7b8,#a45e7d)"},
  {name:"Kabir",age:31,city:"Mumbai",intent:"Long-term relationship",bio:"I believe a strong relationship is built on friendship, trust and laughter. Hoping to meet someone intentional and kind.",tags:["Design","Cooking","Films"],score:"Good potential",photo:"linear-gradient(140deg,#c4a88b,#715e55)"}
