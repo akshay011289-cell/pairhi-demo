@@ -68,7 +68,41 @@
 </main>
 <footer><strong>PairHi</strong><span>Concept MVP · Demo profiles are fictional · Not yet accepting real registrations</span><span>© <span id="year"></span> PairHi</span></footer>
 
-<dialog id="profileDialog"><form method="dialog" class="dialog-inner"><button class="close" aria-label="Close">×</button><span class="eyebrow">PROFILE PREVIEW</span><h2>Your story matters.</h2><p>This prototype uses sample profiles only. Real registration, identity checks, photo uploads and secure matching will be connected to the backend in the next development stage.</p><button class="primary">Got it</button></form></dialog>
+
+<dialog id="profileDialog">
+  <form method="dialog" class="dialog-inner">
+    <button class="close" aria-label="Close">×</button>
+
+    <span class="eyebrow">WELCOME TO PAIRHI</span>
+    <h2>Create your account.</h2>
+    <p>Register or log in to begin your journey.</p>
+
+    <div style="display:grid;gap:12px;margin:20px 0">
+      <input id="authName" type="text" placeholder="Your full name">
+      <input id="authCity" type="text" placeholder="Your city">
+      <select id="authGoal">
+        <option value="Marriage">Marriage</option>
+        <option value="Long-term relationship">Long-term relationship</option>
+      </select>
+      <input id="authEmail" type="email" placeholder="Email address">
+      <input id="authPassword" type="password" placeholder="Password (minimum 8 characters)">
+    </div>
+
+    <button type="button" class="primary" id="signupBtn">
+      Create account
+    </button>
+
+    <button type="button" class="outline" id="loginBtn">
+      Already registered? Log in
+    </button>
+
+    <button type="button" class="outline" id="logoutBtn">
+      Log out
+    </button>
+
+    <p id="authMessage" role="status"></p>
+  </form>
+</dialog>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="app.js"></script>
 </body></html>
