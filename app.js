@@ -1,77 +1,290 @@
 
-const statusBox = document.createElement("div");
+const SUPABASE_URL = "https://nckkelnaxivmynmsktoa.supabase.co";
+const SUPABASE_KEY = "sb_publishable_xlqXiXGxnQ5CXfSKr5DpyQ_WPMIgibr";
 
-statusBox.style.cssText =
-  "position:fixed;bottom:10px;left:10px;right:10px;padding:14px;background:white;border:2px solid #8f3658;border-radius:12px;z-index:999999;text-align:center;color:#29232a;font-size:13px";
+const supabaseClient = window.supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_KEY
+);
 
-statusBox.textContent = "PairHi: Starting connection test...";
-document.body.appendChild(statusBox);
+// PairHi authentication
+const $ = id => document.getElementById(id);
 
-let supabaseClient;
+const dialog = $("profileDialog");
+const authMessage = $("authMessage");
 
-async function testSupabase() {
-  try {
-    if (!window.supabase) {
-      throw new Error("Supabase library did not load.");
-    }
+function showMessage(message) {
+  authMessage.textContent = message;
+}
 
-    statusBox.textContent = "Supabase library loaded. Connecting...";
+function openProfileDialog() {
+  if (!dialog.open) dialog.showModal();
+}
 
-    supabaseClient = window.supabase.createClient(
-      "https://nckkelnaxivmynmsktoa.supabase.co",
-      "sb_publishable_xlqXiXGxnQ5CXfSKr5DpyQ_WPMIgibr"
-    );
+// Create a database profile after the user has logged in.
+async function ensureUserProfile(user) {
+  const metadata = user.user_metadata || {};
 
-    statusBox.textContent = "Client created. Testing database...";
-
-    const { data, error } = await supabaseClient
+  const { data: existingProfile, error: readError } =
+    await supabaseClient
       .from("profiles")
       .select("id")
-      .limit(1);
+      .eq("id", user.id)
+      .maybeSingle();
 
-    if (error) {
-      throw error;
+  if (readError) throw readError;
+
+  if (existingProfile) return;
+
+  const { error: insertError } = await supabaseClient
+    .from("profiles")
+    .insert({
+      id: user.id,
+      display_name: metadata.display_name || "",
+      city: metadata.city || "",
+      relationship_goal:
+        metadata.relationship_goal || "Marriage"
+    });
+
+  if (insertError) throw insertError;
+}
+
+// Registration
+$("signupBtn").addEventListener("click", async () => {
+  const name = $("authName").value.trim();
+  const city = $("authCity").value.trim();
+  const goal = $("authGoal").value;
+  const email = $("authEmail").value.trim();
+  const password = $("authPassword").value;
+
+  if (!name || !city || !email || !password) {
+    showMessage("Please complete all fields.");
+    return;
+  }
+
+  if (password.length < 8) {
+    showMessage("Password must contain at least 8 characters.");
+    return;
+  }
+
+  try {
+    $("signupBtn").disabled = true;
+    showMessage("Creating your PairHi account...");
+
+    const { data, error } = await supabaseClient.auth.signUp({
+      email,
+      password,
+      options: {
+        emailRedirectTo:
+          "https://akshay011289-cell.github.io/pairhi-demo/",
+        data: {
+          display_name: name,
+          city: city,
+          relationship_goal: goal
+        }
+      }
+    });
+
+    if (error) throw error;
+
+    if (data.session && data.user) {
+      await ensureUserProfile(data.user);
+      showMessage("Account created! Your profile is saved.");
+      $("logoutBtn").hidden = false;
+    } else {
+      showMessage(
+        "Registration successful! Please check your email and click the verification link. Then return here and log in."
+      );
     }
 
-    statusBox.textContent =
-      "SUCCESS! PairHi connected to Supabase.";
+  } catch (error) {
+    showMessage("Registration error: " + error.message);
+    console.error("PairHi signup error:", error);
+  } finally {
+    $("signupBtn").disabled = false;
+  }
+});
+
+// Login
+$("loginBtn").addEventListener("click", async () => {
+  const email = $("authEmail").value.trim();
+  const password = $("authPassword").value;
+
+  if (!email || !password) {
+    showMessage("Enter your email and password.");
+    return;
+  }
+
+  try {
+    $("loginBtn").disabled = true;
+    showMessage("Logging in...");
+
+    const { data, error } =
+      await supabaseClient.auth.signInWithPassword({
+        email,
+        password
+      });
+
+    if (error) throw error;
+
+    await ensureUserProfile(data.user);
+
+    $("logoutBtn").hidden = false;
+
+    showMessage(
+      "Welcome to PairHi, " +
+      (data.user.user_metadata.display_name || "member") +
+      "! Your profile is connected."
+    );
 
   } catch (error) {
-    statusBox.textContent =
-      "PAIRHI ERROR: " + error.message;
+    showMessage("Login error: " + error.message);
+    console.error("PairHi login error:", error);
+  } finally {
+    $("loginBtn").disabled = false;
+  }
+});
 
-    console.error("PairHi diagnostic:", error);
+// Logout
+$("logoutBtn").addEventListener("click", async () => {
+  try {
+    const { error } = await supabaseClient.auth.signOut();
+
+    if (error) throw error;
+
+    $("logoutBtn").hidden = true;
+    showMessage("You have logged out successfully.");
+
+  } catch (error) {
+    showMessage("Logout error: " + error.message);
+  }
+});
+
+// Restore existing login when the page opens.
+async function checkExistingLogin() {
+  try {
+    const { data, error } =
+      await supabaseClient.auth.getSession();
+
+    if (error) throw error;
+
+    if (data.session) {
+      await ensureUserProfile(data.session.user);
+      $("logoutBtn").hidden = false;
+      showMessage("You are logged in to PairHi.");
+    } else {
+      $("logoutBtn").hidden = true;
+    }
+
+  } catch (error) {
+    console.error("PairHi session error:", error);
   }
 }
 
-testSupabase();
+// Original PairHi demo profiles
 const profiles = [
- {name:"Aarohi",age:28,city:"Delhi",intent:"Marriage",bio:"I value kindness, family, honest communication and building a life with shared purpose. I enjoy books, travel and trying new food.",tags:["Family-oriented","Travel","Reading"],score:"Strong values overlap",photo:"linear-gradient(140deg,#d8a6a5,#92566b)"},
- {name:"Rohan",age:30,city:"Jaipur",intent:"Long-term relationship",bio:"Grounded, curious and close to my family. Looking for a respectful partnership where both people grow together.",tags:["Entrepreneurship","Fitness","Culture"],score:"Good potential",photo:"linear-gradient(140deg,#c5a18b,#805e52)"},
- {name:"Meera",age:27,city:"Pune",intent:"Marriage",bio:"A thoughtful person who loves music, meaningful conversations and weekend nature escapes. Honesty matters most to me.",tags:["Music","Nature","Family"],score:"Strong values overlap",photo:"linear-gradient(140deg,#d6a7b8,#a45e7d)"},
- {name:"Kabir",age:31,city:"Mumbai",intent:"Long-term relationship",bio:"I believe a strong relationship is built on friendship, trust and laughter. Hoping to meet someone intentional and kind.",tags:["Design","Cooking","Films"],score:"Good potential",photo:"linear-gradient(140deg,#c4a88b,#715e55)"}
+ {
+  name:"Aarohi",age:28,city:"Delhi",intent:"Marriage",
+  bio:"I value kindness, family, honest communication and building a life with shared purpose. I enjoy books, travel and trying new food.",
+  tags:["Family-oriented","Travel","Reading"],
+  score:"Strong values overlap",
+  photo:"linear-gradient(140deg,#d8a6a5,#92566b)"
+ },
+ {
+  name:"Rohan",age:30,city:"Jaipur",intent:"Long-term relationship",
+  bio:"Grounded, curious and close to my family. Looking for a respectful partnership where both people grow together.",
+  tags:["Entrepreneurship","Fitness","Culture"],
+  score:"Good potential",
+  photo:"linear-gradient(140deg,#c5a18b,#805e52)"
+ },
+ {
+  name:"Meera",age:27,city:"Pune",intent:"Marriage",
+  bio:"A thoughtful person who loves music, meaningful conversations and weekend nature escapes. Honesty matters most to me.",
+  tags:["Music","Nature","Family"],
+  score:"Strong values overlap",
+  photo:"linear-gradient(140deg,#d6a7b8,#a45e7d)"
+ },
+ {
+  name:"Kabir",age:31,city:"Mumbai",intent:"Long-term relationship",
+  bio:"I believe a strong relationship is built on friendship, trust and laughter. Hoping to meet someone intentional and kind.",
+  tags:["Design","Cooking","Films"],
+  score:"Good potential",
+  photo:"linear-gradient(140deg,#c4a88b,#715e55)"
+ }
 ];
-let pool=[...profiles], current=null, index=0;
-const $=id=>document.getElementById(id);
-function render(){
- const filter=$("intentFilter").value;
- const visible=profiles.filter(p=>filter==="all"||p.intent===filter);
- if(!visible.length){$("feedback").textContent="No sample profiles in this category.";return;}
- current=visible[index%visible.length];
- $("personName").textContent=`${current.name}, ${current.age}`;
- $("personLocation").textContent=`${current.city} · India`;
- $("personIntent").textContent=current.intent;
- $("personBio").textContent=current.bio;
- $("personTags").innerHTML=current.tags.map(t=>`<span>${t}</span>`).join("");
- $("compatScore").textContent=current.score;
- $("photo").style.background=current.photo;
- $("photoNumber").textContent=`${(index%visible.length)+1} / ${visible.length}`;
+
+let current = null;
+let index = 0;
+
+function render() {
+  const filter = $("intentFilter").value;
+
+  const visible = profiles.filter(
+    p => filter === "all" || p.intent === filter
+  );
+
+  if (!visible.length) {
+    $("feedback").textContent =
+      "No sample profiles in this category.";
+    return;
+  }
+
+  current = visible[index % visible.length];
+
+  $("personName").textContent =
+    `${current.name}, ${current.age}`;
+
+  $("personLocation").textContent =
+    `${current.city} · India`;
+
+  $("personIntent").textContent = current.intent;
+  $("personBio").textContent = current.bio;
+
+  $("personTags").innerHTML = current.tags
+    .map(t => `<span>${t}</span>`)
+    .join("");
+
+  $("compatScore").textContent = current.score;
+  $("photo").style.background = current.photo;
+
+  $("photoNumber").textContent =
+    `${(index % visible.length) + 1} / ${visible.length}`;
 }
-function advance(message){$("feedback").textContent=message;index++;render();}
-$("skipBtn").addEventListener("click",()=>advance("Passed on this sample profile. Your next discovery is ready."));
-$("likeBtn").addEventListener("click",()=>advance(`Interest recorded in this local demo for ${current.name}. Real mutual matching requires registered users and a connected backend.`));
-$("intentFilter").addEventListener("change",()=>{index=0;render();$("feedback").textContent="Showing profiles for your selected intention.";});
-$("profileBtn").addEventListener("click",()=>$("profileDialog").showModal());
-$("year").textContent=new Date().getFullYear();
+
+function advance(message) {
+  $("feedback").textContent = message;
+  index++;
+  render();
+}
+
+$("skipBtn").addEventListener("click", () => {
+  advance("Passed on this sample profile. Your next discovery is ready.");
+});
+
+$("likeBtn").addEventListener("click", () => {
+  advance(
+    `Interest recorded in this local demo for ${current.name}. Real mutual matching requires registered users.`
+  );
+});
+
+$("intentFilter").addEventListener("change", () => {
+  index = 0;
+  render();
+  $("feedback").textContent =
+    "Showing profiles for your selected intention.";
+});
+
+$("profileBtn").addEventListener("click", openProfileDialog);
+
+$("year").textContent = new Date().getFullYear();
+
 render();
-if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}));}
+checkExistingLogin();
+
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker
+      .register("./sw.js")
+      .catch(error => console.log("Service worker:", error));
+  });
+}
