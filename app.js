@@ -29,14 +29,13 @@ const goalMap = {
   "marriage": "marriage",
   "friendship": "friendship"
 };
-
+  
 const profileData = {
   display_name: metadata.display_name || "PairHi Member",
   city: metadata.city || "",
   relationship_goal:
     goalMap[metadata.relationship_goal] || "marriage"
 };
-
   showMessage("Checking your PairHi profile...");
 
   // Find existing profile
