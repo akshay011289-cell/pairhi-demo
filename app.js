@@ -167,7 +167,43 @@ $("logoutBtn").addEventListener("click", async () => {
 });
 
 // Restore existing login when the page opens.
+
 async function checkExistingLogin() {
+  try {
+    const { data, error } =
+      await supabaseClient.auth.getSession();
+
+    if (error) throw error;
+
+    if (data.session) {
+      // Show logout even if profile saving fails.
+      $("logoutBtn").hidden = false;
+
+      try {
+        await ensureUserProfile(data.session.user);
+
+        showMessage(
+          "You are logged in and your PairHi profile is connected."
+        );
+
+      } catch (profileError) {
+        showMessage(
+          "You are logged in, but profile saving failed: " +
+          profileError.message
+        );
+        console.error("Profile saving error:", profileError);
+      }
+
+    } else {
+      $("logoutBtn").hidden = true;
+    }
+
+  } catch (error) {
+    console.error("PairHi session error:", error);
+    showMessage("Session error: " + error.message);
+  }
+}
+
   try {
     const { data, error } =
       await supabaseClient.auth.getSession();
