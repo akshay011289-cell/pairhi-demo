@@ -26,6 +26,38 @@ supabaseClient.from("profiles").select("id").limit(1)
   .catch(error => {
     testBox.textContent = "Connection failed: " + error.message;
   });
+
+const statusBox = document.createElement("div");
+statusBox.style.cssText =
+  "position:fixed;bottom:10px;left:10px;right:10px;padding:14px;background:white;border:2px solid #8f3658;border-radius:12px;z-index:99999;text-align:center;color:#29232a;font-size:13px";
+
+statusBox.textContent = "PairHi: Checking Supabase...";
+document.body.appendChild(statusBox);
+
+if (!window.supabase) {
+  statusBox.textContent =
+    "ERROR: Supabase library did not load. Check index.html.";
+} else {
+  const SUPABASE_URL =
+    "https://nckkelnaxivmynmsktoa.supabase.co";
+
+  const SUPABASE_KEY = "YOUR_PUBLISHABLE_KEY";
+
+  const supabaseClient = window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY
+  );
+
+  supabaseClient.from("profiles").select("id").limit(1)
+    .then(({ data, error }) => {
+      statusBox.textContent = error
+        ? "DATABASE ERROR: " + error.message
+        : "SUCCESS! PairHi connected to Supabase.";
+    })
+    .catch(error => {
+      statusBox.textContent = "ERROR: " + error.message;
+    });
+}
 const profiles = [
  {name:"Aarohi",age:28,city:"Delhi",intent:"Marriage",bio:"I value kindness, family, honest communication and building a life with shared purpose. I enjoy books, travel and trying new food.",tags:["Family-oriented","Travel","Reading"],score:"Strong values overlap",photo:"linear-gradient(140deg,#d8a6a5,#92566b)"},
  {name:"Rohan",age:30,city:"Jaipur",intent:"Long-term relationship",bio:"Grounded, curious and close to my family. Looking for a respectful partnership where both people grow together.",tags:["Entrepreneurship","Fitness","Culture"],score:"Good potential",photo:"linear-gradient(140deg,#c5a18b,#805e52)"},
