@@ -66,12 +66,17 @@
 
   <section class="cta"><div><span class="eyebrow">PAIRHI</span><h2>A thoughtful beginning<br>to something meaningful.</h2></div><a class="primary" href="#discover">Try the demo →</a></section>
 </main>
-<footer><strong>PairHi</strong><span>Concept MVP · Demo profiles are fictional · Not yet accepting real registrations</span><span>© <span id="year"></span> PairHi</span></footer>
 
+<footer>
+  <strong>PairHi</strong>
+  <span>Concept MVP · Demo profiles are fictional · Not yet accepting real registrations</span>
+  <span>© <span id="year"></span> PairHi</span>
+</footer>
 
 <dialog id="profileDialog">
   <form method="dialog" class="dialog-inner">
-    <button class="close" aria-label="Close">×</button>
+    <button type="button" class="close" aria-label="Close"
+      onclick="document.getElementById('profileDialog').close()">×</button>
 
     <span class="eyebrow">WELCOME TO PAIRHI</span>
     <h2>Create your account.</h2>
@@ -80,29 +85,27 @@
     <div style="display:grid;gap:12px;margin:20px 0">
       <input id="authName" type="text" placeholder="Your full name">
       <input id="authCity" type="text" placeholder="Your city">
+
       <select id="authGoal">
         <option value="Marriage">Marriage</option>
         <option value="Long-term relationship">Long-term relationship</option>
       </select>
+
       <input id="authEmail" type="email" placeholder="Email address">
       <input id="authPassword" type="password" placeholder="Password (minimum 8 characters)">
     </div>
 
-    <button type="button" class="primary" id="signupBtn">
-      Create account
-    </button>
+    <button type="button" class="primary" id="signupBtn">Create account</button>
 
-    <button type="button" class="outline" id="loginBtn">
-      Already registered? Log in
-    </button>
+    <button type="button" class="outline" id="loginBtn">Already registered? Log in</button>
 
-    <button type="button" class="outline" id="logoutBtn">
-      Log out
-    </button>
+    <button type="button" class="outline" id="logoutBtn">Log out</button>
 
     <p id="authMessage" role="status"></p>
   </form>
 </dialog>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="app.js"></script>
-</body></html>
+</body>
+</html>
