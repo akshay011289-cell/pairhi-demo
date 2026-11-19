@@ -1,40 +1,50 @@
-const SUPABASE_URL = "https://nckkelnaxivmynmsktoa.supabase.co";
 
-const SUPABASE_KEY = "sb_publishable_xlqXiXGxnQ5CXfSKr5DpyQ_WPMIgibr";
+const statusBox = document.createElement("div");
+
+statusBox.style.cssText =
+  "position:fixed;bottom:10px;left:10px;right:10px;padding:14px;background:white;border:2px solid #8f3658;border-radius:12px;z-index:999999;text-align:center;color:#29232a;font-size:13px";
+
+statusBox.textContent = "PairHi: Starting connection test...";
+document.body.appendChild(statusBox);
 
 let supabaseClient;
 
-const testBox = document.createElement("div");
+async function testSupabase() {
+  try {
+    if (!window.supabase) {
+      throw new Error("Supabase library did not load.");
+    }
 
-testBox.style.cssText =
-  "position:fixed;bottom:10px;left:10px;right:10px;padding:14px;background:white;border:2px solid #8f3658;border-radius:12px;z-index:99999;text-align:center;color:#29232a;font-size:13px";
+    statusBox.textContent = "Supabase library loaded. Connecting...";
 
-testBox.textContent = "PairHi: Checking Supabase...";
-document.body.appendChild(testBox);
+    supabaseClient = window.supabase.createClient(
+      "https://nckkelnaxivmynmsktoa.supabase.co",
+      "sb_publishable_xlqXiXGxnQ5CXfSKr5DpyQ_WPMIgibr"
+    );
 
-if (!window.supabase) {
-  testBox.textContent =
-    "ERROR: Supabase library did not load.";
-} else {
-  supabaseClient = window.supabase.createClient(
-    SUPABASE_URL,
-    SUPABASE_KEY
-  );
+    statusBox.textContent = "Client created. Testing database...";
 
-  supabaseClient
-    .from("profiles")
-    .select("id")
-    .limit(1)
-    .then(({ data, error }) => {
-      testBox.textContent = error
-        ? "DATABASE ERROR: " + error.message
-        : "SUCCESS! PairHi connected to Supabase.";
-    })
-    .catch(error => {
-      testBox.textContent =
-        "CONNECTION ERROR: " + error.message;
-    });
+    const { data, error } = await supabaseClient
+      .from("profiles")
+      .select("id")
+      .limit(1);
+
+    if (error) {
+      throw error;
+    }
+
+    statusBox.textContent =
+      "SUCCESS! PairHi connected to Supabase.";
+
+  } catch (error) {
+    statusBox.textContent =
+      "PAIRHI ERROR: " + error.message;
+
+    console.error("PairHi diagnostic:", error);
+  }
 }
+
+testSupabase();
 const profiles = [
  {name:"Aarohi",age:28,city:"Delhi",intent:"Marriage",bio:"I value kindness, family, honest communication and building a life with shared purpose. I enjoy books, travel and trying new food.",tags:["Family-oriented","Travel","Reading"],score:"Strong values overlap",photo:"linear-gradient(140deg,#d8a6a5,#92566b)"},
  {name:"Rohan",age:30,city:"Jaipur",intent:"Long-term relationship",bio:"Grounded, curious and close to my family. Looking for a respectful partnership where both people grow together.",tags:["Entrepreneurship","Fitness","Culture"],score:"Good potential",photo:"linear-gradient(140deg,#c5a18b,#805e52)"},
