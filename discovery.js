@@ -73,7 +73,7 @@ function addPairHiDialogStyles() {
   const style = document.createElement("style");
   style.id = "pairhiDialogStyles";
 
-  style.textContent = `
+  style.textContent =
     .pairhi-dialog {
       width:min(94%,560px);
       max-width:560px;
@@ -181,13 +181,34 @@ function addPairHiDialogStyles() {
     }
 
     .pairhi-match-avatar {
-      width:48px;
-      height:48px;
-      min-width:48px;
-      border-radius:50%;
-      object-fit:cover;
-      background:#f5dce6;
-    }
+  display: block !important;
+  flex: 0 0 48px !important;
+  width: 48px !important;
+  height: 48px !important;
+  min-width: 48px !important;
+  min-height: 48px !important;
+  max-width: 48px !important;
+  max-height: 48px !important;
+  aspect-ratio: 1 / 1 !important;
+  border-radius: 50% !important;
+  object-fit: cover !important;
+  overflow: hidden !important;
+  background: #f5dce6;
+}
+
+#pairhiMatches img.pairhi-match-avatar {
+  display: block !important;
+  flex: 0 0 48px !important;
+  width: 48px !important;
+  height: 48px !important;
+  min-width: 48px !important;
+  min-height: 48px !important;
+  max-width: 48px !important;
+  max-height: 48px !important;
+  aspect-ratio: 1 / 1 !important;
+  object-fit: cover !important;
+  border-radius: 50% !important;
+}
 
     .pairhi-match-details {
       flex:1;
@@ -292,7 +313,7 @@ function addPairHiDialogStyles() {
       .pairhi-match-card {align-items:flex-start}
       .pairhi-match-actions {gap:5px}
     }
-  `;
+  ;
 
   document.head.appendChild(style);
 }
@@ -878,7 +899,14 @@ function showMatchSection(profiles) {
             image.src = data.signedUrl;
             image.alt = "Matched member";
             image.loading = "lazy";
-
+             image.style.cssText =
+  "display:block !important;flex:0 0 48px !important;" +
+  "width:48px !important;height:48px !important;" +
+  "min-width:48px !important;min-height:48px !important;" +
+  "max-width:48px !important;max-height:48px !important;" +
+  "aspect-ratio:1/1 !important;object-fit:cover !important;" +
+  "border-radius:50% !important;overflow:hidden !important;";
+             
             avatar.replaceWith(image);
           }
         })
