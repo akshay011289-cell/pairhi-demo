@@ -1,0 +1,98 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#8f3658">
+  <title>PairHi Admin Dashboard</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 20px;
+      background: #fbf7f4;
+      color: #29232a;
+      font-family: Arial, sans-serif;
+    }
+    .container {
+      max-width: 900px;
+      margin: 25px auto;
+    }
+    .header, .panel {
+      background: white;
+      border: 1px solid #eadfe3;
+      border-radius: 14px;
+      padding: 20px;
+      margin-bottom: 18px;
+    }
+    h1 { margin: 0 0 8px; color: #8f3658; }
+    h2 { margin-top: 0; }
+    button {
+      border: 0;
+      border-radius: 8px;
+      padding: 11px 16px;
+      margin: 5px 5px 5px 0;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .primary { background: #8f3658; color: white; }
+    .secondary { background: #eee5e9; color: #29232a; }
+    .approve { background: #e1f3e5; color: #176b32; }
+    .reject { background: #fbe5e5; color: #a21d1d; }
+    .profile {
+      border: 1px solid #eadfe3;
+      border-radius: 12px;
+      padding: 16px;
+      margin: 14px 0;
+      overflow-wrap: anywhere;
+    }
+    .profile p { margin: 7px 0; }
+    .status {
+      display: inline-block;
+      padding: 5px 9px;
+      border-radius: 20px;
+      background: #f4edf0;
+      font-size: 13px;
+    }
+    #adminMessage {
+      color: #8f3658;
+      overflow-wrap: anywhere;
+      line-height: 1.5;
+    }
+    .muted { color: #766d73; font-size: 14px; }
+    [hidden] { display: none !important; }
+  </style>
+</head>
+<body>
+  <main class="container">
+    <section class="header">
+      <h1>PairHi Admin</h1>
+      <p>Member verification and account management</p>
+      <a href="./">← Back to PairHi website</a>
+    </section>
+
+    <section class="panel">
+      <h2>Administrator access</h2>
+      <p id="adminMessage">Checking your login...</p>
+      <button class="primary" id="loadProfilesBtn" hidden>
+        Load member profiles
+      </button>
+      <button class="secondary" id="adminLogoutBtn" hidden>
+        Log out
+      </button>
+    </section>
+
+    <section class="panel" id="membersPanel" hidden>
+      <h2>Member verification</h2>
+      <p class="muted">
+        Review member details before approving or rejecting a profile.
+      </p>
+      <div id="profilesList"></div>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="admin.js?v=20261120admin1"></script>
+</body>
+</html>
