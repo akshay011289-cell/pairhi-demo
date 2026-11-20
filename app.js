@@ -1,6 +1,14 @@
 const SUPABASE_URL = "https://nckkelnaxivmynmsktoa.supabase.co";
 const SUPABASE_KEY = "sb_publishable_xlqXiXGxnQ5CXfSKr5DpyQ_WPMIgibr";
 
+if (
+  !window.supabase ||
+  typeof window.supabase.createClient !== "function"
+) {
+  console.error("PAIRHI ERROR: Supabase library failed to load.");
+  throw new Error("Supabase JavaScript library is unavailable. Check the CDN connection.");
+}
+
 const supabaseClient = window.supabase.createClient(
   SUPABASE_URL,
   SUPABASE_KEY
