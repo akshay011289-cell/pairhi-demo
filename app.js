@@ -330,7 +330,7 @@ async function openMemberProfile() {
     console.error("Profile editor error:", error);
   }
 }
-
+window.openMemberProfile = openMemberProfile;
 $("profileBtn").addEventListener("click", openMemberProfile);
 
 // ======================================
