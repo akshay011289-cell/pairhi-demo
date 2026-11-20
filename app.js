@@ -1,4 +1,3 @@
-
 const SUPABASE_URL = "https://nckkelnaxivmynmsktoa.supabase.co";
 const SUPABASE_KEY = "sb_publishable_xlqXiXGxnQ5CXfSKr5DpyQ_WPMIgibr";
 
@@ -45,7 +44,6 @@ async function getCurrentUser() {
 
 // ======================================
 // CREATE PROFILE ONLY IF IT DOES NOT EXIST
-// Do not overwrite details members have edited.
 // ======================================
 
 async function ensureUserProfile(user) {
@@ -93,129 +91,135 @@ async function ensureUserProfile(user) {
 // CREATE ACCOUNT
 // ======================================
 
-$("signupBtn").addEventListener("click", async () => {
-  const name = $("authName").value.trim();
-  const city = $("authCity").value.trim();
-  const goal = $("authGoal").value;
-  const email = $("authEmail").value.trim();
-  const password = $("authPassword").value;
+if ($("signupBtn")) {
+  $("signupBtn").addEventListener("click", async () => {
+    const name = $("authName").value.trim();
+    const city = $("authCity").value.trim();
+    const goal = $("authGoal").value;
+    const email = $("authEmail").value.trim();
+    const password = $("authPassword").value;
 
-  if (!name || !city || !email || !password) {
-    showMessage("Please complete all fields.");
-    return;
-  }
-
-  if (password.length < 8) {
-    showMessage("Password must contain at least 8 characters.");
-    return;
-  }
-
-  try {
-    $("signupBtn").disabled = true;
-    showMessage("Creating your PairHi account...");
-
-    const { data, error } =
-      await supabaseClient.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo:
-            "https://akshay011289-cell.github.io/pairhi-demo/",
-          data: {
-            display_name: name,
-            city: city,
-            relationship_goal: goal
-          }
-        }
-      });
-
-    if (error) throw error;
-
-    if (data.session && data.user) {
-      await ensureUserProfile(data.user);
-      $("logoutBtn").hidden = false;
-
-      showMessage(
-        "Account created successfully! Your PairHi profile is saved."
-      );
-    } else {
-      showMessage(
-        "Registration successful! Please verify your email and then log in."
-      );
+    if (!name || !city || !email || !password) {
+      showMessage("Please complete all fields.");
+      return;
     }
 
-  } catch (error) {
-    showMessage("Registration error: " + error.message);
-    console.error("PairHi registration error:", error);
+    if (password.length < 8) {
+      showMessage("Password must contain at least 8 characters.");
+      return;
+    }
 
-  } finally {
-    $("signupBtn").disabled = false;
-  }
-});
+    try {
+      $("signupBtn").disabled = true;
+      showMessage("Creating your PairHi account...");
+
+      const { data, error } =
+        await supabaseClient.auth.signUp({
+          email,
+          password,
+          options: {
+            emailRedirectTo:
+              "https://akshay011289-cell.github.io/pairhi-demo/",
+            data: {
+              display_name: name,
+              city: city,
+              relationship_goal: goal
+            }
+          }
+        });
+
+      if (error) throw error;
+
+      if (data.session && data.user) {
+        await ensureUserProfile(data.user);
+        $("logoutBtn").hidden = false;
+
+        showMessage(
+          "Account created successfully! Your PairHi profile is saved."
+        );
+      } else {
+        showMessage(
+          "Registration successful! Please verify your email and then log in."
+        );
+      }
+
+    } catch (error) {
+      showMessage("Registration error: " + error.message);
+      console.error("PairHi registration error:", error);
+
+    } finally {
+      $("signupBtn").disabled = false;
+    }
+  });
+}
 
 // ======================================
 // LOGIN
 // ======================================
 
-$("loginBtn").addEventListener("click", async () => {
-  const email = $("authEmail").value.trim();
-  const password = $("authPassword").value;
+if ($("loginBtn")) {
+  $("loginBtn").addEventListener("click", async () => {
+    const email = $("authEmail").value.trim();
+    const password = $("authPassword").value;
 
-  if (!email || !password) {
-    showMessage("Enter your email and password.");
-    return;
-  }
+    if (!email || !password) {
+      showMessage("Enter your email and password.");
+      return;
+    }
 
-  try {
-    $("loginBtn").disabled = true;
-    showMessage("Logging in to PairHi...");
+    try {
+      $("loginBtn").disabled = true;
+      showMessage("Logging in to PairHi...");
 
-    const { data, error } =
-      await supabaseClient.auth.signInWithPassword({
-        email,
-        password
-      });
+      const { data, error } =
+        await supabaseClient.auth.signInWithPassword({
+          email,
+          password
+        });
 
-    if (error) throw error;
+      if (error) throw error;
 
-    const savedProfile = await ensureUserProfile(data.user);
+      const savedProfile = await ensureUserProfile(data.user);
 
-    $("logoutBtn").hidden = false;
+      $("logoutBtn").hidden = false;
 
-    showMessage(
-      "Welcome to PairHi, " +
-      savedProfile.display_name +
-      "! Your profile is saved."
-    );
+      showMessage(
+        "Welcome to PairHi, " +
+        savedProfile.display_name +
+        "! Your profile is saved."
+      );
 
-  } catch (error) {
-    showMessage("Login error: " + error.message);
-    console.error("PairHi login error:", error);
+    } catch (error) {
+      showMessage("Login error: " + error.message);
+      console.error("PairHi login error:", error);
 
-  } finally {
-    $("loginBtn").disabled = false;
-  }
-});
+    } finally {
+      $("loginBtn").disabled = false;
+    }
+  });
+}
 
 // ======================================
 // LOGOUT
 // ======================================
 
-$("logoutBtn").addEventListener("click", async () => {
-  try {
-    const { error } =
-      await supabaseClient.auth.signOut();
+if ($("logoutBtn")) {
+  $("logoutBtn").addEventListener("click", async () => {
+    try {
+      const { error } =
+        await supabaseClient.auth.signOut();
 
-    if (error) throw error;
+      if (error) throw error;
 
-    $("logoutBtn").hidden = true;
-    showMessage("You have logged out successfully.");
+      $("logoutBtn").hidden = true;
+      showMessage("You have logged out successfully.");
 
-  } catch (error) {
-    showMessage("Logout error: " + error.message);
-    console.error(error);
-  }
-});
+    } catch (error) {
+      showMessage("Logout error: " + error.message);
+      console.error(error);
+    }
+  });
+}
 
 // ======================================
 // RESTORE EXISTING LOGIN
@@ -253,9 +257,17 @@ async function checkExistingLogin() {
 // ======================================
 // OPEN MEMBER PROFILE EDITOR
 // ======================================
-window.openMemberProfile = openMemberProfile;
+
 async function openMemberProfile() {
   try {
+    const editor = $("editProfileDialog");
+
+    if (!editor) {
+      throw new Error(
+        "The editProfileDialog element is missing from index.html."
+      );
+    }
+
     const user = await getCurrentUser();
 
     if (!user) {
@@ -269,43 +281,59 @@ async function openMemberProfile() {
       return;
     }
 
+    showProfileMessage("Loading your PairHi profile...");
+
     await ensureUserProfile(user);
 
     const { data: profile, error } =
       await supabaseClient
         .from("profiles")
-        .select(
-          "display_name, age, gender, preferred_gender, city, preferred_city, relationship_goal, min_age_preference, max_age_preference, bio, photo_url, verification_status"
-        )
+        .select("*")
         .eq("id", user.id)
         .single();
 
     if (error) throw error;
 
-    $("profileName").value = profile.display_name || "";
-    $("profileAge").value = profile.age || "";
-    $("profileGender").value = profile.gender || "";
+    if (!profile) {
+      throw new Error("Your profile record could not be found.");
+    }
+
+    // Fill in profile information.
+
+    $("profileName").value =
+      profile.display_name || "";
+
+    $("profileAge").value =
+      profile.age ?? "";
+
+    $("profileGender").value =
+      profile.gender || "";
+
     $("profilePreferredGender").value =
       profile.preferred_gender || "";
-    $("profileCity").value = profile.city || "";
+
+    $("profileCity").value =
+      profile.city || "";
+
     $("profilePreferredCity").value =
       profile.preferred_city || "";
+
     $("profileGoal").value =
       profile.relationship_goal || "marriage";
+
     $("profileMinAge").value =
-      profile.min_age_preference || 18;
+      profile.min_age_preference ?? 18;
+
     $("profileMaxAge").value =
-      profile.max_age_preference || 60;
-    $("profileBio").value = profile.bio || "";
+      profile.max_age_preference ?? 60;
 
-    // A new photo is required only if no photo is saved.
-    $("profilePhoto").required = !profile.photo_url;
+    $("profileBio").value =
+      profile.bio || "";
 
-    showProfileMessage(
-      profile.photo_url
-        ? "Your profile photograph is already saved. You can upload a new one if you wish."
-        : "Please upload a profile photograph to continue."
-    );
+    $("profilePhoto").value = "";
+
+    $("profilePhoto").required =
+      !profile.photo_url;
 
     if (profile.verification_status === "approved") {
       showProfileMessage(
@@ -313,181 +341,226 @@ async function openMemberProfile() {
       );
     } else {
       showProfileMessage(
-        "Your verification status is " +
+        "Verification status: " +
         (profile.verification_status || "pending") +
         ". Complete your profile and submit it for review."
       );
     }
 
-    const editor = $("editProfileDialog");
-
-    if (editor && !editor.open) {
+    if (!editor.open) {
       editor.showModal();
     }
 
   } catch (error) {
-    showMessage("Could not open your profile: " + error.message);
-    console.error("Profile editor error:", error);
+    console.error("PAIRHI PROFILE ERROR:", error);
+
+    showProfileMessage(
+      "Could not open your profile: " + error.message
+    );
+
+    alert(
+      "PAIRHI PROFILE ERROR:\n" + error.message
+    );
   }
 }
+
+// Make the function available to the HTML button.
 window.openMemberProfile = openMemberProfile;
-$("profileBtn").addEventListener("click", openMemberProfile);
+
+// Connect the My Profile button.
+const profileButton = $("profileBtn");
+
+if (profileButton) {
+  profileButton.addEventListener("click", function(event) {
+    event.preventDefault();
+    openMemberProfile();
+  });
+} else {
+  console.error(
+    "PAIRHI ERROR: profileBtn was not found in index.html."
+  );
+}
 
 // ======================================
 // SAVE MEMBER PROFILE AND PHOTO
 // ======================================
 
-$("editProfileForm").addEventListener("submit", async event => {
-  event.preventDefault();
+if ($("editProfileForm")) {
+  $("editProfileForm").addEventListener("submit", async event => {
+    event.preventDefault();
 
-  const saveButton = $("saveProfileBtn");
+    const saveButton = $("saveProfileBtn");
 
-  try {
-    saveButton.disabled = true;
-    showProfileMessage("Saving your PairHi profile...");
+    try {
+      saveButton.disabled = true;
+      showProfileMessage("Saving your PairHi profile...");
 
-    const user = await getCurrentUser();
+      const user = await getCurrentUser();
 
-    if (!user) {
-      throw new Error("Please log in again before saving your profile.");
-    }
-
-    const name = $("profileName").value.trim();
-    const age = Number($("profileAge").value);
-    const gender = $("profileGender").value;
-    const preferredGender =
-      $("profilePreferredGender").value;
-    const city = $("profileCity").value.trim();
-    const preferredCity =
-      $("profilePreferredCity").value.trim();
-    const goal = $("profileGoal").value;
-    const minAge = Number($("profileMinAge").value);
-    const maxAge = Number($("profileMaxAge").value);
-    const bio = $("profileBio").value.trim();
-    const photoInput = $("profilePhoto");
-    const photoFile =
-      photoInput.files && photoInput.files[0];
-
-    if (!name || !city || !bio || !gender || !preferredGender) {
-      throw new Error("Please complete all required profile fields.");
-    }
-
-    if (!Number.isInteger(age) || age < 18 || age > 100) {
-      throw new Error("Please enter a valid age between 18 and 100.");
-    }
-
-    if (
-      !Number.isInteger(minAge) ||
-      !Number.isInteger(maxAge) ||
-      minAge < 18 ||
-      maxAge > 100 ||
-      minAge > maxAge
-    ) {
-      throw new Error("Please check your preferred age range.");
-    }
-
-    if (photoFile) {
-      const allowedTypes = [
-        "image/jpeg",
-        "image/png",
-        "image/webp"
-      ];
-
-      if (!allowedTypes.includes(photoFile.type)) {
+      if (!user) {
         throw new Error(
-          "Please upload a JPG, PNG or WEBP photograph."
+          "Please log in again before saving your profile."
         );
       }
 
-      if (photoFile.size > 5 * 1024 * 1024) {
-        throw new Error("Your photograph must be smaller than 5 MB.");
+      const name = $("profileName").value.trim();
+      const age = Number($("profileAge").value);
+      const gender = $("profileGender").value;
+      const preferredGender =
+        $("profilePreferredGender").value;
+      const city = $("profileCity").value.trim();
+      const preferredCity =
+        $("profilePreferredCity").value.trim();
+      const goal = $("profileGoal").value;
+      const minAge = Number($("profileMinAge").value);
+      const maxAge = Number($("profileMaxAge").value);
+      const bio = $("profileBio").value.trim();
+      const photoInput = $("profilePhoto");
+      const photoFile =
+        photoInput.files && photoInput.files[0];
+
+      if (!name || !city || !bio || !gender || !preferredGender) {
+        throw new Error(
+          "Please complete all required profile fields."
+        );
       }
+
+      if (!Number.isInteger(age) || age < 18 || age > 100) {
+        throw new Error(
+          "Please enter a valid age between 18 and 100."
+        );
+      }
+
+      if (
+        !Number.isInteger(minAge) ||
+        !Number.isInteger(maxAge) ||
+        minAge < 18 ||
+        maxAge > 100 ||
+        minAge > maxAge
+      ) {
+        throw new Error(
+          "Please check your preferred age range."
+        );
+      }
+
+      if (photoFile) {
+        const allowedTypes = [
+          "image/jpeg",
+          "image/png",
+          "image/webp"
+        ];
+
+        if (!allowedTypes.includes(photoFile.type)) {
+          throw new Error(
+            "Please upload a JPG, PNG or WEBP photograph."
+          );
+        }
+
+        if (photoFile.size > 5 * 1024 * 1024) {
+          throw new Error(
+            "Your photograph must be smaller than 5 MB."
+          );
+        }
+      }
+
+      // Read existing saved photo path.
+
+      const { data: existingProfile, error: existingError } =
+        await supabaseClient
+          .from("profiles")
+          .select("photo_url")
+          .eq("id", user.id)
+          .single();
+
+      if (existingError) throw existingError;
+
+      let photoPath =
+        existingProfile.photo_url || "";
+
+      // Upload a new photograph if selected.
+
+      if (photoFile) {
+        const extension =
+          photoFile.type === "image/png" ? "png" :
+          photoFile.type === "image/webp" ? "webp" : "jpg";
+
+        photoPath =
+          user.id + "/avatar-" + Date.now() + "." + extension;
+
+        showProfileMessage("Uploading your photograph...");
+
+        const { error: uploadError } =
+          await supabaseClient.storage
+            .from("profile-photos")
+            .upload(photoPath, photoFile, {
+              upsert: false,
+              contentType: photoFile.type
+            });
+
+        if (uploadError) throw uploadError;
+      }
+
+      // Verification status is not included.
+      // Only an administrator can approve profiles.
+
+      const profileData = {
+        display_name: name,
+        age: age,
+        gender: gender,
+        preferred_gender: preferredGender,
+        city: city,
+        preferred_city: preferredCity || null,
+        relationship_goal: goalValue(goal),
+        min_age_preference: minAge,
+        max_age_preference: maxAge,
+        bio: bio,
+        photo_url: photoPath
+      };
+
+      showProfileMessage("Saving your profile details...");
+
+      const { error: updateError } =
+        await supabaseClient
+          .from("profiles")
+          .update(profileData)
+          .eq("id", user.id);
+
+      if (updateError) throw updateError;
+
+      showProfileMessage(
+        "Your profile has been saved. It will remain pending until it is reviewed and approved."
+      );
+
+      photoInput.value = "";
+      photoInput.required = false;
+
+      setTimeout(() => {
+        const editor = $("editProfileDialog");
+
+        if (editor && editor.open) {
+          editor.close();
+        }
+      }, 1800);
+
+    } catch (error) {
+      showProfileMessage(
+        "Profile saving error: " + error.message
+      );
+
+      console.error(
+        "PairHi profile saving error:",
+        error
+      );
+
+    } finally {
+      saveButton.disabled = false;
     }
-
-    // Read existing saved photo path.
-    const { data: existingProfile, error: existingError } =
-      await supabaseClient
-        .from("profiles")
-        .select("photo_url")
-        .eq("id", user.id)
-        .single();
-
-    if (existingError) throw existingError;
-
-    let photoPath = existingProfile.photo_url || "";
-
-    // Upload a new photograph if one was selected.
-    if (photoFile) {
-      const extension =
-        photoFile.type === "image/png" ? "png" :
-        photoFile.type === "image/webp" ? "webp" : "jpg";
-
-      photoPath =
-        user.id + "/avatar-" + Date.now() + "." + extension;
-
-      showProfileMessage("Uploading your photograph...");
-
-      const { error: uploadError } =
-        await supabaseClient.storage
-          .from("profile-photos")
-          .upload(photoPath, photoFile, {
-            upsert: false,
-            contentType: photoFile.type
-          });
-
-      if (uploadError) throw uploadError;
-    }
-
-    // Save profile details. Verification status is deliberately
-    // not included: only an administrator should approve profiles.
-    const profileData = {
-      display_name: name,
-      age: age,
-      gender: gender,
-      preferred_gender: preferredGender,
-      city: city,
-      preferred_city: preferredCity || null,
-      relationship_goal: goalValue(goal),
-      min_age_preference: minAge,
-      max_age_preference: maxAge,
-      bio: bio,
-      photo_url: photoPath
-    };
-
-    showProfileMessage("Saving your profile details...");
-
-    const { error: updateError } =
-      await supabaseClient
-        .from("profiles")
-        .update(profileData)
-        .eq("id", user.id);
-
-    if (updateError) throw updateError;
-
-    showProfileMessage(
-      "Your profile has been saved. It will remain pending until it is reviewed and approved."
-    );
-
-    photoInput.value = "";
-    photoInput.required = false;
-
-    setTimeout(() => {
-      const editor = $("editProfileDialog");
-      if (editor && editor.open) editor.close();
-    }, 1800);
-
-  } catch (error) {
-    showProfileMessage("Profile saving error: " + error.message);
-    console.error("PairHi profile saving error:", error);
-
-  } finally {
-    saveButton.disabled = false;
-  }
-});
+  });
+}
 
 // ======================================
 // PAIRHI DEMO DISCOVERY PROFILES
-// These are still sample profiles for now.
+// These are sample profiles, not real users.
 // ======================================
 
 const profiles = [
@@ -537,7 +610,11 @@ let current = null;
 let index = 0;
 
 function render() {
-  const filter = $("intentFilter").value;
+  const filterElement = $("intentFilter");
+
+  if (!filterElement) return;
+
+  const filter = filterElement.value;
 
   const visible = profiles.filter(
     p => filter === "all" || p.intent === filter
@@ -557,15 +634,21 @@ function render() {
   $("personLocation").textContent =
     `${current.city} · India`;
 
-  $("personIntent").textContent = current.intent;
-  $("personBio").textContent = current.bio;
+  $("personIntent").textContent =
+    current.intent;
+
+  $("personBio").textContent =
+    current.bio;
 
   $("personTags").innerHTML = current.tags
     .map(t => `<span>${t}</span>`)
     .join("");
 
-  $("compatScore").textContent = current.score;
-  $("photo").style.background = current.photo;
+  $("compatScore").textContent =
+    current.score;
+
+  $("photo").style.background =
+    current.photo;
 
   $("photoNumber").textContent =
     `${(index % visible.length) + 1} / ${visible.length}`;
@@ -577,33 +660,41 @@ function advance(message) {
   render();
 }
 
-$("skipBtn").addEventListener("click", () => {
-  advance(
-    "Passed on this sample profile. Your next discovery is ready."
-  );
-});
+if ($("skipBtn")) {
+  $("skipBtn").addEventListener("click", () => {
+    advance(
+      "Passed on this sample profile. Your next discovery is ready."
+    );
+  });
+}
 
-$("likeBtn").addEventListener("click", () => {
-  if (!current) return;
+if ($("likeBtn")) {
+  $("likeBtn").addEventListener("click", () => {
+    if (!current) return;
 
-  advance(
-    `Interest recorded in this local demo for ${current.name}. Real mutual matching requires registered users.`
-  );
-});
+    advance(
+      `Interest recorded in this local demo for ${current.name}. Real mutual matching requires registered users.`
+    );
+  });
+}
 
-$("intentFilter").addEventListener("change", () => {
-  index = 0;
-  render();
+if ($("intentFilter")) {
+  $("intentFilter").addEventListener("change", () => {
+    index = 0;
+    render();
 
-  $("feedback").textContent =
-    "Showing profiles for your selected intention.";
-});
+    $("feedback").textContent =
+      "Showing profiles for your selected intention.";
+  });
+}
 
 // ======================================
 // FOOTER AND STARTUP
 // ======================================
 
-$("year").textContent = new Date().getFullYear();
+if ($("year")) {
+  $("year").textContent = new Date().getFullYear();
+}
 
 render();
 checkExistingLogin();
@@ -621,3 +712,4 @@ if ("serviceWorker" in navigator) {
       );
   });
 }
+```
