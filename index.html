@@ -1,3 +1,4 @@
+
 <!doctype html>
 <html lang="en">
 <head>
@@ -5,70 +6,195 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#ed2b83">
   <meta name="description" content="PairHi helps adults discover genuine connections for serious relationships and marriage. Explore mutual matches and build meaningful relationships.">
+
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="styles.css"> <link rel="icon" type="image/png" href="assets/pairhi-logo.png"> <meta property="og:title" content="PairHi – Real People. Real Profiles. Real Connections."> <meta property="og:description" content="A serious relationship and marriage-focused community concept with mutual matching."> <meta property="og:type" content="website">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="icon" type="image/png" href="assets/pairhi-logo.png">
+
+  <meta property="og:title" content="PairHi – Real People. Real Profiles. Real Connections.">
+  <meta property="og:description" content="A serious relationship and marriage-focused community concept with mutual matching.">
+  <meta property="og:type" content="website">
+
   <title>PairHi – Serious Dating & Marriage Connections</title>
 </head>
+
 <body>
+
 <header class="topbar">
-  <a class="brand" href="#" aria-label="PairHi home"><span class="brandmark">♥</span><span>PairHi<small>Real People. Real Profiles. Real Connections.</small></span></a>
+  <a class="brand" href="#" aria-label="PairHi home">
+    <span class="brandmark">♥</span>
+    <span>PairHi
+      <small>Real People. Real Profiles. Real Connections.</small>
+    </span>
+  </a>
+
   <nav>
-  <button class="outline" id="profileBtn" onclick="openMemberProfile()">
-    My profile
-  </button>
-</nav>
+    <button
+      class="outline"
+      id="profileBtn"
+      type="button"
+      onclick="if (typeof window.openMemberProfile === 'function') { window.openMemberProfile(); } else { alert('PairHi JavaScript is not loaded. Please refresh the page.'); }"
+    >
+      My profile
+    </button>
+  </nav>
 </header>
+
 <main>
+
   <section class="hero">
-    <div><span class="eyebrow">MEANINGFUL CONNECTIONS START HERE</span>
+    <div>
+      <span class="eyebrow">MEANINGFUL CONNECTIONS START HERE</span>
       <h1>Less swiping.<br><em>More meaning.</em></h1>
       <p>Meet people who share your values, relationship goals and hopes for the future.</p>
       <a class="primary" href="#discover">Explore profiles <span>→</span></a>
       <p class="micro">Prototype demo · All profiles shown are fictional examples</p>
     </div>
-    <div class="hero-art"><div class="orbit"></div><div class="heart">♡</div><div class="floating f1">Shared values</div><div class="floating f2">A future together</div><div class="floating f3">Real connections</div></div>
+
+    <div class="hero-art">
+      <div class="orbit"></div>
+      <div class="heart">♡</div>
+      <div class="floating f1">Shared values</div>
+      <div class="floating f2">A future together</div>
+      <div class="floating f3">Real connections</div>
+    </div>
   </section>
 
-  <section class="trust-strip"><span>♡ Values-led matching</span><span>⌂ India-first community</span><span>✓ Safety by design</span></section>
+  <section class="trust-strip">
+    <span>♡ Values-led matching</span>
+    <span>⌂ India-first community</span>
+    <span>✓ Safety by design</span>
+  </section>
 
   <section id="discover" class="discover">
-    <div class="section-heading"><div><span class="eyebrow">YOUR NEXT CHAPTER</span><h2>People to discover</h2><p>Explore sample profiles and try the matching experience.</p></div>
-      <label class="filter">Looking for <select id="intentFilter"><option value="all">All serious connections</option><option value="Marriage">Marriage</option><option value="Long-term relationship">Long-term relationship</option></select></label>
+
+    <div class="section-heading">
+      <div>
+        <span class="eyebrow">YOUR NEXT CHAPTER</span>
+        <h2>People to discover</h2>
+        <p>Explore sample profiles and try the matching experience.</p>
+      </div>
+
+      <label class="filter">
+        Looking for
+        <select id="intentFilter">
+          <option value="all">All serious connections</option>
+          <option value="Marriage">Marriage</option>
+          <option value="Long-term relationship">Long-term relationship</option>
+        </select>
+      </label>
     </div>
+
     <div class="deck-wrap">
+
       <div id="card" class="person-card">
-        <div class="photo" id="photo"><span class="verified">✓ Demo profile</span><span class="photo-number" id="photoNumber">01 / 04</span></div>
-        <div class="person-info"><div><h3 id="personName">Aarohi, 28</h3><p id="personLocation">Delhi · India</p></div><span class="intent" id="personIntent">Marriage</span></div>
+        <div class="photo" id="photo">
+          <span class="verified">✓ Demo profile</span>
+          <span class="photo-number" id="photoNumber">01 / 04</span>
+        </div>
+
+        <div class="person-info">
+          <div>
+            <h3 id="personName">Aarohi, 28</h3>
+            <p id="personLocation">Delhi · India</p>
+          </div>
+          <span class="intent" id="personIntent">Marriage</span>
+        </div>
+
         <p class="bio" id="personBio"></p>
         <div class="tags" id="personTags"></div>
-        <div class="compat"><span>Values & lifestyle</span><strong id="compatScore">Good potential</strong></div>
-        <div class="actions"><button class="skip" id="skipBtn" aria-label="Pass">×</button><button class="like" id="likeBtn">♡ <span>Interested</span></button></div>
+
+        <div class="compat">
+          <span>Values & lifestyle</span>
+          <strong id="compatScore">Good potential</strong>
+        </div>
+
+        <div class="actions">
+          <button class="skip" id="skipBtn" aria-label="Pass">×</button>
+          <button class="like" id="likeBtn">♡ <span>Interested</span></button>
+        </div>
       </div>
-      <aside class="side-note"><span class="eyebrow">A BETTER WAY TO MEET</span><h3>Start with what matters.</h3><p>Profiles are designed around relationship intentions, values, lifestyle and future expectations—not just photographs.</p><div class="note-line">01 <span>Discover people</span></div><div class="note-line">02 <span>Express mutual interest</span></div><div class="note-line">03 <span>Start a respectful conversation</span></div></aside>
+
+      <aside class="side-note">
+        <span class="eyebrow">A BETTER WAY TO MEET</span>
+        <h3>Start with what matters.</h3>
+        <p>Profiles are designed around relationship intentions, values, lifestyle and future expectations—not just photographs.</p>
+
+        <div class="note-line">01 <span>Discover people</span></div>
+        <div class="note-line">02 <span>Express mutual interest</span></div>
+        <div class="note-line">03 <span>Start a respectful conversation</span></div>
+      </aside>
+
     </div>
-    <div class="feedback" id="feedback" role="status">Choose “Interested” or pass to explore the demo.</div>
+
+    <div class="feedback" id="feedback" role="status">
+      Choose “Interested” or pass to explore the demo.
+    </div>
   </section>
 
-  <section id="how" class="how"><span class="eyebrow">BUILT FOR INTENTION</span><h2>Connection with clarity.</h2><div class="feature-grid">
-    <article><b>01</b><h3>Share your intentions</h3><p>Be clear about whether you are seeking marriage or a committed long-term relationship.</p></article>
-    <article><b>02</b><h3>Discover compatibility</h3><p>Compare interests, values and lifestyle preferences before deciding to connect.</p></article>
-    <article><b>03</b><h3>Connect by consent</h3><p>Only mutual interest should open a conversation. Block and report tools belong in the real product.</p></article>
-  </div></section>
+  <section id="how" class="how">
+    <span class="eyebrow">BUILT FOR INTENTION</span>
+    <h2>Connection with clarity.</h2>
 
+    <div class="feature-grid">
+      <article>
+        <b>01</b>
+        <h3>Share your intentions</h3>
+        <p>Be clear about whether you are seeking marriage or a committed long-term relationship.</p>
+      </article>
+
+      <article>
+        <b>02</b>
+        <h3>Discover compatibility</h3>
+        <p>Compare interests, values and lifestyle preferences before deciding to connect.</p>
+      </article>
+
+      <article>
+        <b>03</b>
+        <h3>Connect by consent</h3>
+        <p>Only mutual interest should open a conversation. Block and report tools belong in the real product.</p>
+      </article>
+    </div>
+  </section>
 
   <section id="plans" class="how pricing">
     <span class="eyebrow">SIMPLE, LOW-COST MEMBERSHIP</span>
     <h2>Choose how you want to discover.</h2>
     <p>Everyone can start with 10 free likes/swipes. Membership is planned to unlock unlimited discovery.</p>
+
     <div class="feature-grid">
-      <article><b>1 MONTH</b><h3>₹99</h3><p>Unlimited likes during the active plan (planned feature).</p></article>
-      <article><b>6 MONTHS</b><h3>₹199</h3><p>Longer discovery at a low introductory price (planned feature).</p></article>
-      <article><b>12 MONTHS</b><h3>₹399</h3><p>Annual membership for people serious about finding a partner (planned feature).</p></article>
+      <article>
+        <b>1 MONTH</b>
+        <h3>₹99</h3>
+        <p>Unlimited likes during the active plan (planned feature).</p>
+      </article>
+
+      <article>
+        <b>6 MONTHS</b>
+        <h3>₹199</h3>
+        <p>Longer discovery at a low introductory price (planned feature).</p>
+      </article>
+
+      <article>
+        <b>12 MONTHS</b>
+        <h3>₹399</h3>
+        <p>Annual membership for people serious about finding a partner (planned feature).</p>
+      </article>
     </div>
-    <p class="micro">Pricing is a proposed plan only. Payments and subscriptions are not active in this demo. Mutual-match chat and calls are planned to be free for both matched members.</p>
+
+    <p class="micro">
+      Pricing is a proposed plan only. Payments and subscriptions are not active in this demo. Mutual-match chat and calls are planned to be free for both matched members.
+    </p>
   </section>
 
-  <section class="cta"><div><span class="eyebrow">PAIRHI</span><h2>A thoughtful beginning<br>to something meaningful.</h2></div><a class="primary" href="#discover">Try the demo →</a></section>
+  <section class="cta">
+    <div>
+      <span class="eyebrow">PAIRHI</span>
+      <h2>A thoughtful beginning<br>to something meaningful.</h2>
+    </div>
+    <a class="primary" href="#discover">Try the demo →</a>
+  </section>
+
 </main>
 
 <footer>
@@ -77,17 +203,26 @@
   <span>© <span id="year"></span> PairHi</span>
 </footer>
 
+<!-- LOGIN AND REGISTRATION DIALOG -->
+
 <dialog id="profileDialog">
   <form method="dialog" class="dialog-inner">
-    <button type="button" class="close" aria-label="Close"
-      onclick="document.getElementById('profileDialog').close()">×</button>
+
+    <button
+      type="button"
+      class="close"
+      aria-label="Close"
+      onclick="document.getElementById('profileDialog').close()"
+    >×</button>
 
     <span class="eyebrow">WELCOME TO PAIRHI</span>
     <h2>Create your account.</h2>
     <p>Register or log in to begin your journey.</p>
 
     <div style="display:grid;gap:12px;margin:20px 0">
+
       <input id="authName" type="text" placeholder="Your full name">
+
       <input id="authCity" type="text" placeholder="Your city">
 
       <select id="authGoal">
@@ -96,24 +231,42 @@
       </select>
 
       <input id="authEmail" type="email" placeholder="Email address">
-      <input id="authPassword" type="password" placeholder="Password (minimum 8 characters)">
+
+      <input
+        id="authPassword"
+        type="password"
+        placeholder="Password (minimum 8 characters)"
+      >
+
     </div>
 
-    <button type="button" class="primary" id="signupBtn">Create account</button>
+    <button type="button" class="primary" id="signupBtn">
+      Create account
+    </button>
 
-    <button type="button" class="outline" id="loginBtn">Already registered? Log in</button>
+    <button type="button" class="outline" id="loginBtn">
+      Already registered? Log in
+    </button>
 
-    <button type="button" class="outline" id="logoutBtn">Log out</button>
+    <button type="button" class="outline" id="logoutBtn" hidden>
+      Log out
+    </button>
 
     <p id="authMessage" role="status"></p>
+
   </form>
 </dialog>
 
-<!-- PAIRHI MEMBER PROFILE EDITOR -->
+<!-- MEMBER PROFILE EDITOR -->
+
 <dialog id="editProfileDialog">
   <form method="dialog" class="dialog-inner" id="editProfileForm">
-    <button type="button" class="close"
-      onclick="document.getElementById('editProfileDialog').close()">×</button>
+
+    <button
+      type="button"
+      class="close"
+      onclick="document.getElementById('editProfileDialog').close()"
+    >×</button>
 
     <span class="eyebrow">YOUR PAIRHI IDENTITY</span>
     <h2>Complete your profile.</h2>
@@ -121,13 +274,13 @@
 
     <div class="profile-fields">
 
-      <label>Full name</label>
+      <label for="profileName">Full name</label>
       <input id="profileName" type="text" required maxlength="80">
 
-      <label>Age (18–100)</label>
+      <label for="profileAge">Age (18–100)</label>
       <input id="profileAge" type="number" min="18" max="100" required>
 
-      <label>Gender</label>
+      <label for="profileGender">Gender</label>
       <select id="profileGender" required>
         <option value="">Select gender</option>
         <option value="male">Male</option>
@@ -135,7 +288,7 @@
         <option value="other">Other</option>
       </select>
 
-      <label>Interested in</label>
+      <label for="profilePreferredGender">Interested in</label>
       <select id="profilePreferredGender" required>
         <option value="">Select preference</option>
         <option value="male">Men</option>
@@ -143,46 +296,60 @@
         <option value="any">Everyone</option>
       </select>
 
-      <label>Your city</label>
+      <label for="profileCity">Your city</label>
       <input id="profileCity" type="text" required maxlength="100">
 
-      <label>Preferred city (leave blank for any city)</label>
+      <label for="profilePreferredCity">Preferred city (leave blank for any city)</label>
       <input id="profilePreferredCity" type="text" maxlength="100">
 
-      <label>Relationship goal</label>
+      <label for="profileGoal">Relationship goal</label>
       <select id="profileGoal" required>
         <option value="marriage">Marriage</option>
         <option value="serious_relationship">Serious relationship</option>
         <option value="friendship">Friendship</option>
       </select>
 
-      <label>Minimum preferred age</label>
+      <label for="profileMinAge">Minimum preferred age</label>
       <input id="profileMinAge" type="number" min="18" max="100" value="18" required>
 
-      <label>Maximum preferred age</label>
+      <label for="profileMaxAge">Maximum preferred age</label>
       <input id="profileMaxAge" type="number" min="18" max="100" value="60" required>
 
-      <label>About yourself</label>
-      <textarea id="profileBio" maxlength="500"
+      <label for="profileBio">About yourself</label>
+      <textarea
+        id="profileBio"
+        maxlength="500"
         placeholder="Tell other members about yourself..."
-        rows="4" required></textarea>
+        rows="4"
+        required
+      ></textarea>
 
-      <label>Profile photograph (mandatory)</label>
-      <input id="profilePhoto" type="file"
-        accept="image/jpeg,image/png,image/webp" required>
+      <label for="profilePhoto">Profile photograph (mandatory)</label>
+      <input
+        id="profilePhoto"
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        required
+      >
 
-      <p class="micro">Use a clear photograph of yourself. Maximum file size: 5 MB.</p>
+      <p class="micro">
+        Use a clear photograph of yourself. Maximum file size: 5 MB.
+      </p>
 
       <button type="submit" class="primary" id="saveProfileBtn">
         Save & Submit for Verification
       </button>
 
       <p id="profileMessage" role="status"></p>
+
     </div>
   </form>
 </dialog>
 
+<!-- LOAD SUPABASE FIRST, THEN PAIRHI JAVASCRIPT -->
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="app.js"></script>
+<script src="app.js?v=202611202"></script>
+
 </body>
 </html>
