@@ -44,12 +44,22 @@ function goalValue(value) {
 // ======================================
 
 async function getCurrentUser() {
-  const { data, error } = await supabaseClient.auth.getUser();
+  const { data, error } =
+    await supabaseClient.auth.getSession();
 
   if (error) throw error;
-  return data.user;
-}
 
+  if (!data.session) {
+    return null;
+  }
+
+  const { data: userData, error: userError } =
+    await supabaseClient.auth.getUser();
+
+  if (userError) throw userError;
+
+  return userData.user;
+}
 // ======================================
 // CREATE PROFILE ONLY IF IT DOES NOT EXIST
 // ======================================
