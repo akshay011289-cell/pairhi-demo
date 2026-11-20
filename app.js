@@ -253,7 +253,7 @@ async function checkExistingLogin() {
 // ======================================
 // OPEN MEMBER PROFILE EDITOR
 // ======================================
-
+window.openMemberProfile = openMemberProfile;
 async function openMemberProfile() {
   try {
     const user = await getCurrentUser();
