@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#ed2b83">
 
   <meta name="description" content="PairHi helps adults discover genuine connections for serious relationships and marriage. Explore mutual matches and build meaningful relationships.">
@@ -16,6 +16,123 @@
   <link rel="icon" type="image/png" href="assets/pairhi-logo.png">
 
   <title>PairHi – Serious Dating & Marriage Connections</title>
+
+  <style>
+    dialog {
+      width: min(92%, 520px);
+      max-width: 520px;
+      max-height: 90vh;
+      overflow-y: auto;
+      border: 1px solid #eadfe3;
+      border-radius: 18px;
+      padding: 0;
+      color: #29232a;
+      background: #fff;
+    }
+
+    dialog::backdrop {
+      background: rgba(25, 15, 22, 0.65);
+      backdrop-filter: blur(3px);
+    }
+
+    .dialog-inner {
+      padding: 24px;
+    }
+
+    .dialog-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .dialog-header h2 {
+      margin: 0 0 6px;
+    }
+
+    .dialog-header p {
+      margin: 0;
+      color: #766d73;
+      font-size: 14px;
+    }
+
+    .dialog-close {
+      border: 0;
+      background: transparent;
+      font-size: 25px;
+      cursor: pointer;
+      color: #766d73;
+    }
+
+    .form-field {
+      margin-bottom: 15px;
+    }
+
+    .form-field label {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .form-field input,
+    .form-field select,
+    .form-field textarea {
+      display: block;
+      width: 100%;
+      box-sizing: border-box;
+      min-height: 44px;
+      padding: 11px 12px;
+      border: 1px solid #eadfe3;
+      border-radius: 9px;
+      background: #fff;
+      color: #29232a;
+      font: inherit;
+    }
+
+    .form-field textarea {
+      min-height: 100px;
+      resize: vertical;
+    }
+
+    .dialog-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .dialog-actions button {
+      cursor: pointer;
+    }
+
+    .dialog-message {
+      min-height: 22px;
+      margin-top: 14px;
+      color: #8f3658;
+      font-size: 14px;
+      overflow-wrap: anywhere;
+    }
+
+    .form-help {
+      color: #766d73;
+      font-size: 12px;
+      margin-top: 5px;
+    }
+
+    .required-note {
+      color: #766d73;
+      font-size: 12px;
+      margin-bottom: 14px;
+    }
+
+    @media (max-width: 480px) {
+      .dialog-inner {
+        padding: 18px;
+      }
+    }
+  </style>
 </head>
 
 <body>
@@ -47,6 +164,7 @@
   <section class="hero">
     <div>
       <span class="eyebrow">MEANINGFUL CONNECTIONS START HERE</span>
+
       <h1>Less swiping.<br><em>More meaning.</em></h1>
 
       <p>
@@ -130,20 +248,11 @@
         </div>
 
         <div class="actions">
-          <button
-            class="skip"
-            id="skipBtn"
-            type="button"
-            aria-label="Pass"
-          >
+          <button class="skip" id="skipBtn" type="button" aria-label="Pass">
             ×
           </button>
 
-          <button
-            class="like"
-            id="likeBtn"
-            type="button"
-          >
+          <button class="like" id="likeBtn" type="button">
             ♡ <span>Interested</span>
           </button>
         </div>
@@ -288,9 +397,359 @@
   </span>
 </footer>
 
-<!-- LOGIN AND REGISTRATION DIALOG -->
+
+<!-- =========================================
+     LOGIN AND REGISTRATION DIALOG
+========================================= -->
+
 <dialog id="profileDialog">
 
-  <form method="dialog" class="dialog-inner">
+  <div class="dialog-inner">
 
-    <
+    <div class="dialog-header">
+      <div>
+        <h2>Welcome to PairHi</h2>
+        <p>Create an account or log in to manage your profile.</p>
+      </div>
+
+      <button
+        class="dialog-close"
+        type="button"
+        aria-label="Close"
+        onclick="document.getElementById('profileDialog').close()"
+      >×</button>
+    </div>
+
+    <p class="required-note">
+      All fields marked with * are required.
+    </p>
+
+    <div class="form-field">
+      <label for="authName">Full name *</label>
+      <input
+        id="authName"
+        type="text"
+        placeholder="Enter your full name"
+        autocomplete="name"
+      >
+    </div>
+
+    <div class="form-field">
+      <label for="authCity">Your city *</label>
+      <input
+        id="authCity"
+        type="text"
+        placeholder="Enter your city"
+        autocomplete="address-level2"
+      >
+    </div>
+
+    <div class="form-field">
+      <label for="authGoal">Relationship goal *</label>
+      <select id="authGoal">
+        <option value="marriage">Marriage</option>
+        <option value="serious_relationship">Serious relationship</option>
+        <option value="friendship">Friendship</option>
+      </select>
+    </div>
+
+    <div class="form-field">
+      <label for="authEmail">Email address *</label>
+      <input
+        id="authEmail"
+        type="email"
+        placeholder="you@example.com"
+        autocomplete="email"
+      >
+    </div>
+
+    <div class="form-field">
+      <label for="authPassword">Password *</label>
+      <input
+        id="authPassword"
+        type="password"
+        placeholder="At least 8 characters"
+        minlength="8"
+        autocomplete="current-password"
+      >
+      <div class="form-help">
+        Use at least 8 characters.
+      </div>
+    </div>
+
+    <div class="dialog-actions">
+
+      <button
+        class="primary"
+        id="signupBtn"
+        type="button"
+      >
+        Create account
+      </button>
+
+      <button
+        class="outline"
+        id="loginBtn"
+        type="button"
+      >
+        Log in
+      </button>
+
+      <button
+        class="outline"
+        id="logoutBtn"
+        type="button"
+        hidden
+      >
+        Log out
+      </button>
+
+    </div>
+
+    <div
+      class="dialog-message"
+      id="authMessage"
+      role="status"
+      aria-live="polite"
+    ></div>
+
+  </div>
+
+</dialog>
+
+
+<!-- =========================================
+     EDIT PROFILE DIALOG
+========================================= -->
+
+<dialog id="editProfileDialog">
+
+  <div class="dialog-inner">
+
+    <div class="dialog-header">
+      <div>
+        <h2>My PairHi Profile</h2>
+        <p>Complete your details to help us find compatible connections.</p>
+      </div>
+
+      <button
+        class="dialog-close"
+        type="button"
+        aria-label="Close"
+        onclick="document.getElementById('editProfileDialog').close()"
+      >×</button>
+    </div>
+
+    <form id="editProfileForm">
+
+      <p class="required-note">
+        Please complete all required fields. Your profile photo is mandatory.
+      </p>
+
+      <div class="form-field">
+        <label for="profileName">Full name *</label>
+        <input
+          id="profileName"
+          type="text"
+          required
+          maxlength="100"
+          autocomplete="name"
+        >
+      </div>
+
+      <div class="form-field">
+        <label for="profileAge">Age *</label>
+        <input
+          id="profileAge"
+          type="number"
+          min="18"
+          max="100"
+          required
+          inputmode="numeric"
+          placeholder="Your age"
+        >
+      </div>
+
+      <div class="form-field">
+        <label for="profileGender">Your gender *</label>
+        <select id="profileGender" required>
+          <option value="">Select gender</option>
+          <option value="male">Male</option>
+          <option value="female">Female</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+
+      <div class="form-field">
+        <label for="profilePreferredGender">Interested in *</label>
+        <select id="profilePreferredGender" required>
+          <option value="">Select preference</option>
+          <option value="male">Men</option>
+          <option value="female">Women</option>
+          <option value="any">Everyone</option>
+        </select>
+      </div>
+
+      <div class="form-field">
+        <label for="profileCity">Your city *</label>
+        <input
+          id="profileCity"
+          type="text"
+          required
+          maxlength="100"
+          placeholder="Your current city"
+        >
+      </div>
+
+      <div class="form-field">
+        <label for="profilePreferredCity">Preferred city</label>
+        <input
+          id="profilePreferredCity"
+          type="text"
+          maxlength="100"
+          placeholder="Optional"
+        >
+      </div>
+
+      <div class="form-field">
+        <label for="profileGoal">Relationship goal *</label>
+        <select id="profileGoal" required>
+          <option value="marriage">Marriage</option>
+          <option value="serious_relationship">Serious relationship</option>
+          <option value="friendship">Friendship</option>
+        </select>
+      </div>
+
+      <div class="form-field">
+        <label for="profileMinAge">Preferred minimum age *</label>
+        <input
+          id="profileMinAge"
+          type="number"
+          min="18"
+          max="100"
+          value="18"
+          required
+          inputmode="numeric"
+        >
+      </div>
+
+      <div class="form-field">
+        <label for="profileMaxAge">Preferred maximum age *</label>
+        <input
+          id="profileMaxAge"
+          type="number"
+          min="18"
+          max="100"
+          value="60"
+          required
+          inputmode="numeric"
+        >
+      </div>
+
+      <div class="form-field">
+        <label for="profileBio">About yourself *</label>
+        <textarea
+          id="profileBio"
+          required
+          maxlength="1000"
+          placeholder="Tell people about your personality, interests, values and what you are looking for."
+        ></textarea>
+      </div>
+
+      <div class="form-field">
+        <label for="profilePhoto">Profile photograph *</label>
+        <input
+          id="profilePhoto"
+          type="file"
+          accept="image/jpeg,image/png,image/webp"
+          required
+        >
+        <div class="form-help">
+          JPG, PNG or WEBP format. Maximum file size: 5 MB.
+          You can leave this empty when updating an existing photo.
+        </div>
+      </div>
+
+      <div class="dialog-actions">
+
+        <button
+          class="primary"
+          id="saveProfileBtn"
+          type="submit"
+        >
+          Save my profile
+        </button>
+
+        <button
+          class="outline"
+          type="button"
+          onclick="document.getElementById('editProfileDialog').close()"
+        >
+          Cancel
+        </button>
+
+      </div>
+
+      <div
+        class="dialog-message"
+        id="profileMessage"
+        role="status"
+        aria-live="polite"
+      ></div>
+
+    </form>
+
+  </div>
+
+</dialog>
+
+
+<!-- =========================================
+     ERROR DIAGNOSTICS
+========================================= -->
+
+<script>
+  window.addEventListener("error", function(event) {
+    alert(
+      "PAIRHI ERROR: " +
+      (event.message || "Unknown error") +
+      "\nFILE: " +
+      (event.filename || "Unknown file") +
+      "\nLINE: " +
+      (event.lineno || "Unknown line") +
+      "\nCOLUMN: " +
+      (event.colno || "Unknown column")
+    );
+  });
+
+  window.addEventListener("unhandledrejection", function(event) {
+    const reason = event.reason;
+
+    alert(
+      "PAIRHI PROMISE ERROR: " +
+      (
+        reason && reason.message
+          ? reason.message
+          : String(reason)
+      )
+    );
+  });
+</script>
+
+
+<!-- =========================================
+     SUPABASE LIBRARY
+========================================= -->
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+
+<!-- =========================================
+     PAIRHI APPLICATION JAVASCRIPT
+========================================= -->
+
+<script src="app.js?v=20261120fix3"></script>
+
+</body>
+</html>
+```
