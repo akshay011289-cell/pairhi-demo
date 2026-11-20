@@ -367,20 +367,6 @@ async function openMemberProfile() {
 // Make the function available to the HTML button.
 window.openMemberProfile = openMemberProfile;
 
-// Connect the My Profile button.
-const profileButton = $("profileBtn");
-
-if (profileButton) {
-  profileButton.addEventListener("click", function(event) {
-    event.preventDefault();
-    openMemberProfile();
-  });
-} else {
-  console.error(
-    "PAIRHI ERROR: profileBtn was not found in index.html."
-  );
-}
-
 // ======================================
 // SAVE MEMBER PROFILE AND PHOTO
 // ======================================
