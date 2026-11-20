@@ -147,15 +147,24 @@
   </a>
 
   <nav>
-    <button
-      class="outline"
-      id="profileBtn"
-      type="button"
-      onclick="if (typeof window.openMemberProfile === 'function') { window.openMemberProfile(); } else { alert('PairHi is still loading or has encountered a JavaScript error. Please refresh the page.'); }"
-    >
-      My profile
-    </button>
-  </nav>
+  <button
+    class="outline"
+    id="profileBtn"
+    type="button"
+    onclick="if (typeof window.openMemberProfile === 'function') { window.openMemberProfile(); } else { alert('PairHi is still loading. Please refresh the page.'); }"
+  >
+    My profile
+  </button>
+
+  <button
+    class="outline"
+    id="logoutBtn"
+    type="button"
+    hidden
+  >
+    Log out
+  </button>
+</nav>
 </header>
 
 <main>
