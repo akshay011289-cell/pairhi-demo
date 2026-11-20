@@ -108,6 +108,79 @@ My profile
   </form>
 </dialog>
 
+<!-- PAIRHI MEMBER PROFILE EDITOR -->
+<dialog id="editProfileDialog">
+  <form method="dialog" class="dialog-inner" id="editProfileForm">
+    <button type="button" class="close"
+      onclick="document.getElementById('editProfileDialog').close()">×</button>
+
+    <span class="eyebrow">YOUR PAIRHI IDENTITY</span>
+    <h2>Complete your profile.</h2>
+    <p>Complete these details to submit your profile for verification.</p>
+
+    <div class="profile-fields">
+
+      <label>Full name</label>
+      <input id="profileName" type="text" required maxlength="80">
+
+      <label>Age (18–100)</label>
+      <input id="profileAge" type="number" min="18" max="100" required>
+
+      <label>Gender</label>
+      <select id="profileGender" required>
+        <option value="">Select gender</option>
+        <option value="male">Male</option>
+        <option value="female">Female</option>
+        <option value="other">Other</option>
+      </select>
+
+      <label>Interested in</label>
+      <select id="profilePreferredGender" required>
+        <option value="">Select preference</option>
+        <option value="male">Men</option>
+        <option value="female">Women</option>
+        <option value="any">Everyone</option>
+      </select>
+
+      <label>Your city</label>
+      <input id="profileCity" type="text" required maxlength="100">
+
+      <label>Preferred city (leave blank for any city)</label>
+      <input id="profilePreferredCity" type="text" maxlength="100">
+
+      <label>Relationship goal</label>
+      <select id="profileGoal" required>
+        <option value="marriage">Marriage</option>
+        <option value="serious_relationship">Serious relationship</option>
+        <option value="friendship">Friendship</option>
+      </select>
+
+      <label>Minimum preferred age</label>
+      <input id="profileMinAge" type="number" min="18" max="100" value="18" required>
+
+      <label>Maximum preferred age</label>
+      <input id="profileMaxAge" type="number" min="18" max="100" value="60" required>
+
+      <label>About yourself</label>
+      <textarea id="profileBio" maxlength="500"
+        placeholder="Tell other members about yourself..."
+        rows="4" required></textarea>
+
+      <label>Profile photograph (mandatory)</label>
+      <input id="profilePhoto" type="file"
+        accept="image/jpeg,image/png,image/webp" required>
+
+      <p class="micro">Use a clear photograph of yourself. Maximum file size: 5 MB.</p>
+
+      <button type="submit" class="primary" id="saveProfileBtn">
+        Save & Submit for Verification
+      </button>
+
+      <p id="profileMessage" role="status"></p>
+    </div>
+  </form>
+</dialog>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="app.js"></script>
 </body>
