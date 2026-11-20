@@ -347,9 +347,17 @@
 </dialog>
 
 <!-- LOAD SUPABASE FIRST, THEN PAIRHI JAVASCRIPT -->
-
+<script>
+window.addEventListener("error", function(event) {
+  alert("PAIRHI SCRIPT ERROR: " + (event.message || "Unknown error"));
+});
+</script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="app.js?v=202611202"></script>
-
+<script>
+window.addEventListener("error", function(event) {
+  alert("PAIRHI SCRIPT ERROR: " + (event.message || "Unknown error"));
+});
+</script>
 </body>
 </html>
