@@ -1,6 +1,7 @@
 
 /* ==========================================
    PAIRHI REAL MEMBER DISCOVERY
+   Mutual match detection and display
    Uses the existing Supabase client.
 ========================================== */
 
@@ -9,6 +10,7 @@ let discoveryIndex = 0;
 let discoveryUser = null;
 let discoveryBusy = false;
 let discoveryLoading = false;
+let discoveryMatchedIds = new Set();
 
 const discovery$ = id => document.getElementById(id);
 
@@ -37,11 +39,195 @@ function compatibleGender(preference, gender) {
 
 function goalDatabaseValue(value) {
   if (value === "Marriage") return "marriage";
+
   if (value === "Long-term relationship") {
     return "serious_relationship";
   }
+
   return null;
 }
+
+/* ==========================================
+   MATCH DISPLAY
+========================================== */
+
+function createMatchSection() {
+  let section = discovery$("pairhiMatches");
+
+  if (section) return section;
+
+  section = document.createElement("section");
+  section.id = "pairhiMatches";
+
+  section.style.cssText = [
+    "margin:20px auto",
+    "padding:18px",
+    "max-width:900px",
+    "background:#fff",
+    "border:1px solid #eadfe3",
+    "border-radius:16px",
+    "display:none"
+  ].join(";");
+
+  const discoverSection = discovery$("discover");
+
+  if (discoverSection) {
+    const feedback = discovery$("feedback");
+
+    if (feedback && feedback.parentNode) {
+      feedback.parentNode.insertBefore(section, feedback);
+    } else {
+      discoverSection.appendChild(section);
+    }
+  }
+
+  return section;
+}
+
+function showMatchSection(profiles) {
+  const section = createMatchSection();
+
+  if (!section) return;
+
+  section.replaceChildren();
+
+  if (!profiles || profiles.length === 0) {
+    section.style.display = "none";
+    return;
+  }
+
+  section.style.display = "block";
+
+  const heading = document.createElement("h2");
+  heading.textContent = "♥ Your mutual matches";
+  heading.style.cssText =
+    "color:#8f3658;margin:0 0 14px;font-size:22px";
+
+  section.appendChild(heading);
+
+  const description = document.createElement("p");
+  description.textContent =
+    "These members have also expressed interest in you.";
+
+  description.style.cssText =
+    "color:#766d73;margin:0 0 14px;font-size:14px";
+
+  section.appendChild(description);
+
+  profiles.forEach(member => {
+    const card = document.createElement("div");
+
+    card.style.cssText = [
+      "display:flex",
+      "align-items:center",
+      "gap:14px",
+      "padding:12px",
+      "margin-bottom:10px",
+      "border:1px solid #eadfe3",
+      "border-radius:12px"
+    ].join(";");
+
+    const avatar = document.createElement("div");
+
+    avatar.textContent =
+      (member.display_name || "P").trim().charAt(0).toUpperCase();
+
+    avatar.style.cssText = [
+      "width:48px",
+      "height:48px",
+      "min-width:48px",
+      "border-radius:50%",
+      "display:flex",
+      "align-items:center",
+      "justify-content:center",
+      "background:#f5dce6",
+      "color:#8f3658",
+      "font-size:20px",
+      "font-weight:bold"
+    ].join(";");
+
+    const details = document.createElement("div");
+    details.style.flex = "1";
+
+    const name = document.createElement("strong");
+
+    name.textContent =
+      (member.display_name || "PairHi Member") +
+      (member.age ? ", " + member.age : "");
+
+    name.style.cssText =
+      "display:block;color:#29232a;font-size:16px";
+
+    const location = document.createElement("span");
+
+    location.textContent = member.city || "";
+
+    location.style.cssText =
+      "display:block;color:#766d73;font-size:13px;margin-top:4px";
+
+    const status = document.createElement("span");
+
+    status.textContent = "♥ Mutual match";
+
+    status.style.cssText =
+      "display:block;color:#8f3658;font-size:13px;font-weight:600;margin-top:5px";
+
+    details.appendChild(name);
+    details.appendChild(location);
+    details.appendChild(status);
+
+    card.appendChild(avatar);
+    card.appendChild(details);
+
+    section.appendChild(card);
+  });
+}
+
+async function loadMyMatches(userId) {
+  const { data: matches, error: matchError } =
+    await supabaseClient
+      .from("matches")
+      .select("id,user1_id,user2_id,created_at")
+      .or(
+        "user1_id.eq." + userId +
+        ",user2_id.eq." + userId
+      );
+
+  if (matchError) throw matchError;
+
+  const matchRows = matches || [];
+
+  discoveryMatchedIds = new Set(
+    matchRows.map(match =>
+      match.user1_id === userId
+        ? match.user2_id
+        : match.user1_id
+    )
+  );
+
+  if (discoveryMatchedIds.size === 0) {
+    showMatchSection([]);
+    return;
+  }
+
+  const matchedIds = Array.from(discoveryMatchedIds);
+
+  const { data: profiles, error: profileError } =
+    await supabaseClient
+      .from("profiles")
+      .select("id,display_name,age,city")
+      .in("id", matchedIds);
+
+  if (profileError) throw profileError;
+
+  showMatchSection(profiles || []);
+
+  return matchRows;
+}
+
+/* ==========================================
+   LOAD DISCOVERY
+========================================== */
 
 async function loadDiscovery() {
   if (discoveryLoading) return;
@@ -49,10 +235,11 @@ async function loadDiscovery() {
   discoveryLoading = true;
   discoveryCandidates = [];
   discoveryIndex = 0;
+
   hideDiscoveryCard();
 
   try {
-    discoveryMessage("Loading real PairHi members...");
+    discoveryMessage("Loading your PairHi account...");
 
     const { data: sessionData, error: sessionError } =
       await supabaseClient.auth.getSession();
@@ -60,6 +247,9 @@ async function loadDiscovery() {
     if (sessionError) throw sessionError;
 
     if (!sessionData.session) {
+      discoveryUser = null;
+      discoveryMatchedIds = new Set();
+      showMatchSection([]);
       discoveryMessage(
         "Please log in to discover approved PairHi members."
       );
@@ -93,6 +283,9 @@ async function loadDiscovery() {
       return;
     }
 
+    /* Load mutual matches before discovery candidates. */
+    await loadMyMatches(user.id);
+
     if (
       !myProfile.age ||
       !myProfile.gender ||
@@ -114,7 +307,6 @@ async function loadDiscovery() {
       return;
     }
 
-    // Read profiles visible under the existing RLS policy.
     const { data: members, error: membersError } =
       await supabaseClient
         .from("profiles")
@@ -128,7 +320,6 @@ async function loadDiscovery() {
 
     if (membersError) throw membersError;
 
-    // Read this member's outgoing likes.
     const { data: likes, error: likesError } =
       await supabaseClient
         .from("likes")
@@ -137,7 +328,6 @@ async function loadDiscovery() {
 
     if (likesError) throw likesError;
 
-    // Read this member's saved passes.
     const { data: passes, error: passesError } =
       await supabaseClient
         .from("passes")
@@ -163,19 +353,18 @@ async function loadDiscovery() {
     discoveryCandidates = (members || []).filter(member => {
       if (!member.age || !member.gender) return false;
 
-      // Exclude profiles already liked or passed.
       if (alreadyLiked.has(member.id)) return false;
       if (alreadyPassed.has(member.id)) return false;
 
-      // Apply the current member's age preference.
+      if (discoveryMatchedIds.has(member.id)) return false;
+
       if (
-        member.age < myProfile.min_age_preference ||
-        member.age > myProfile.max_age_preference
+        member.age < (myProfile.min_age_preference || 18) ||
+        member.age > (myProfile.max_age_preference || 100)
       ) {
         return false;
       }
 
-      // Apply the current member's gender preference.
       if (
         !compatibleGender(
           myProfile.preferred_gender,
@@ -185,7 +374,6 @@ async function loadDiscovery() {
         return false;
       }
 
-      // Check that the candidate is also compatible.
       if (
         !compatibleGender(
           member.preferred_gender,
@@ -195,7 +383,6 @@ async function loadDiscovery() {
         return false;
       }
 
-      // Check reciprocal age preference.
       if (
         myProfile.age < (member.min_age_preference || 18) ||
         myProfile.age > (member.max_age_preference || 100)
@@ -203,12 +390,10 @@ async function loadDiscovery() {
         return false;
       }
 
-      // Use preferred city, or own city if not specified.
       if (normalizeCity(member.city) !== targetCity) {
         return false;
       }
 
-      // Apply the discovery intention filter.
       if (
         selectedGoal &&
         member.relationship_goal !== selectedGoal
@@ -220,11 +405,21 @@ async function loadDiscovery() {
     });
 
     if (discoveryCandidates.length === 0) {
-      discoveryMessage(
-        "No compatible approved members are available in " +
-        cityToUse +
-        " yet. New approved members will appear here automatically."
-      );
+      hideDiscoveryCard();
+
+      if (discoveryMatchedIds.size > 0) {
+        discoveryMessage(
+          "Your mutual matches are shown above. " +
+          "There are no new compatible profiles to discover right now."
+        );
+      } else {
+        discoveryMessage(
+          "No compatible approved members are available in " +
+          cityToUse +
+          " yet. New approved members will appear here automatically."
+        );
+      }
+
       return;
     }
 
@@ -247,13 +442,17 @@ async function loadDiscovery() {
   }
 }
 
+/* ==========================================
+   RENDER PROFILE CARD
+========================================== */
+
 async function renderRealCandidate() {
   if (discoveryIndex >= discoveryCandidates.length) {
     hideDiscoveryCard();
 
     discoveryMessage(
       "You've viewed all currently available compatible profiles. " +
-      "Check again when more members join."
+      "Your mutual matches are shown above."
     );
 
     return;
@@ -282,8 +481,7 @@ async function renderRealCandidate() {
 
   const goals = {
     marriage: "Marriage",
-    serious_relationship: "Serious relationship",
-    friendship: "Friendship"
+    serious_relationship: "Serious relationship"
   };
 
   discovery$("personIntent").textContent =
@@ -308,14 +506,13 @@ async function renderRealCandidate() {
     badge.textContent = "✓ Approved member";
   }
 
-  // Use a neutral background if no photograph is available.
   photo.style.background =
     "linear-gradient(140deg,#d8a6b8,#92566b)";
 
   const oldImage = photo.querySelector("img");
+
   if (oldImage) oldImage.remove();
 
-  // Generate a temporary private photo URL.
   if (member.photo_url) {
     try {
       const { data, error } =
@@ -341,6 +538,7 @@ async function renderRealCandidate() {
         if (badge) badge.style.zIndex = "2";
 
         const number = discovery$("photoNumber");
+
         if (number) number.style.zIndex = "2";
 
         photo.appendChild(image);
@@ -357,6 +555,10 @@ async function renderRealCandidate() {
     "Review this approved member and choose Interested or Pass."
   );
 }
+
+/* ==========================================
+   SAVE INTEREST OR PASS
+========================================== */
 
 async function saveDiscoveryAction(action) {
   if (discoveryBusy) return;
@@ -387,10 +589,27 @@ async function saveDiscoveryAction(action) {
 
       if (error) throw error;
 
-      discoveryMessage(
-        "Your interest has been saved. If this member also likes you, " +
-        "a mutual match can be created."
-      );
+      /*
+        The database trigger creates the match.
+        We only read the protected matches table here.
+      */
+
+      await loadMyMatches(discoveryUser.id);
+
+      if (discoveryMatchedIds.has(member.id)) {
+        discoveryMessage(
+          "♥ It's a mutual match! " +
+          "You and " +
+          (member.display_name || "this member") +
+          " have both expressed interest. " +
+          "Your match is shown above."
+        );
+      } else {
+        discoveryMessage(
+          "Your interest has been saved. " +
+          "If this member also likes you, a mutual match will appear above."
+        );
+      }
 
     } else {
       const { error } = await supabaseClient
@@ -426,7 +645,10 @@ async function saveDiscoveryAction(action) {
   }
 }
 
-// Intercept old demo button handlers.
+/* ==========================================
+   BUTTON EVENTS
+========================================== */
+
 if (discovery$("likeBtn")) {
   discovery$("likeBtn").addEventListener(
     "click",
@@ -458,7 +680,10 @@ if (discovery$("intentFilter")) {
   );
 }
 
-// Replace demo wording with live discovery wording.
+/* ==========================================
+   UPDATE LIVE DISCOVERY WORDING
+========================================== */
+
 const discoveryIntro =
   document.querySelector("#discover .section-heading p");
 
@@ -483,11 +708,15 @@ if (discoveryFooter) {
     "Member profiles are subject to verification";
 }
 
-// Load when the existing Supabase session is available.
+/* ==========================================
+   AUTHENTICATION LISTENER
+========================================== */
+
 supabaseClient.auth.onAuthStateChange(() => {
   window.setTimeout(() => {
     loadDiscovery();
   }, 0);
 });
 
+/* Initial discovery load */
 loadDiscovery();
