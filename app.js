@@ -1,3 +1,4 @@
+
 const SUPABASE_URL = "https://nckkelnaxivmynmsktoa.supabase.co";
 const SUPABASE_KEY = "sb_publishable_xlqXiXGxnQ5CXfSKr5DpyQ_WPMIgibr";
 
@@ -6,7 +7,7 @@ if (
   typeof window.supabase.createClient !== "function"
 ) {
   console.error("PAIRHI ERROR: Supabase library failed to load.");
-  throw new Error("Supabase JavaScript library is unavailable. Check the CDN connection.");
+  throw new Error("Supabase JavaScript library is unavailable.");
 }
 
 const supabaseClient = window.supabase.createClient(
@@ -16,6 +17,42 @@ const supabaseClient = window.supabase.createClient(
 
 const $ = id => document.getElementById(id);
 
+// ======================================
+// RELATIONSHIP GOALS
+// ======================================
+
+const ALLOWED_GOALS = [
+  "marriage",
+  "serious_relationship",
+  "marriage_oriented_serious_relationship"
+];
+
+function goalValue(value) {
+  const goal = String(value || "").trim();
+
+  const goalMap = {
+    "Marriage": "marriage",
+    "Long-term Serious Relationship": "serious_relationship",
+    "Long-term relationship": "serious_relationship",
+    "Marriage-Oriented Serious Relationship":
+      "marriage_oriented_serious_relationship",
+    "marriage": "marriage",
+    "serious_relationship": "serious_relationship",
+    "marriage_oriented_serious_relationship":
+      "marriage_oriented_serious_relationship"
+  };
+
+  const normalized = goalMap[goal];
+
+  return ALLOWED_GOALS.includes(normalized)
+    ? normalized
+    : "marriage";
+}
+
+// ======================================
+// MESSAGE HELPERS
+// ======================================
+
 function showMessage(message) {
   const messageBox = $("authMessage");
   if (messageBox) messageBox.textContent = message;
@@ -24,19 +61,6 @@ function showMessage(message) {
 function showProfileMessage(message) {
   const messageBox = $("profileMessage");
   if (messageBox) messageBox.textContent = message;
-}
-
-function goalValue(value) {
-  const goalMap = {
-    "Marriage": "marriage",
-    "Long-term relationship": "serious_relationship",
-    "Friendship": "friendship",
-    "serious_relationship": "serious_relationship",
-    "marriage": "marriage",
-    "friendship": "friendship"
-  };
-
-  return goalMap[value] || "marriage";
 }
 
 // ======================================
@@ -49,9 +73,7 @@ async function getCurrentUser() {
 
   if (error) throw error;
 
-  if (!data.session) {
-    return null;
-  }
+  if (!data.session) return null;
 
   const { data: userData, error: userError } =
     await supabaseClient.auth.getUser();
@@ -60,6 +82,7 @@ async function getCurrentUser() {
 
   return userData.user;
 }
+
 // ======================================
 // CREATE PROFILE ONLY IF IT DOES NOT EXIST
 // ======================================
@@ -100,7 +123,10 @@ async function ensureUserProfile(user) {
       .maybeSingle();
 
   if (verifyError) throw verifyError;
-  if (!saved) throw new Error("Your profile could not be found.");
+
+  if (!saved) {
+    throw new Error("Your profile could not be found.");
+  }
 
   return saved;
 }
@@ -119,6 +145,11 @@ if ($("signupBtn")) {
 
     if (!name || !city || !email || !password) {
       showMessage("Please complete all fields.");
+      return;
+    }
+
+    if (!ALLOWED_GOALS.includes(goal)) {
+      showMessage("Please select a valid relationship goal.");
       return;
     }
 
@@ -150,7 +181,10 @@ if ($("signupBtn")) {
 
       if (data.session && data.user) {
         await ensureUserProfile(data.user);
-        $("logoutBtn").hidden = false;
+
+        if ($("logoutBtn")) {
+          $("logoutBtn").hidden = false;
+        }
 
         showMessage(
           "Account created successfully! Your PairHi profile is saved."
@@ -197,14 +231,17 @@ if ($("loginBtn")) {
 
       if (error) throw error;
 
-      const savedProfile = await ensureUserProfile(data.user);
+      const savedProfile =
+        await ensureUserProfile(data.user);
 
-      $("logoutBtn").hidden = false;
+      if ($("logoutBtn")) {
+        $("logoutBtn").hidden = false;
+      }
 
       showMessage(
         "Welcome to PairHi, " +
         savedProfile.display_name +
-        "! Your profile is saved."
+        "! Your profile is connected."
       );
 
     } catch (error) {
@@ -230,6 +267,7 @@ if ($("logoutBtn")) {
       if (error) throw error;
 
       $("logoutBtn").hidden = true;
+
       showMessage("You have logged out successfully.");
 
     } catch (error) {
@@ -251,7 +289,9 @@ async function checkExistingLogin() {
     if (error) throw error;
 
     if (data.session) {
-      $("logoutBtn").hidden = false;
+      if ($("logoutBtn")) {
+        $("logoutBtn").hidden = false;
+      }
 
       const savedProfile =
         await ensureUserProfile(data.session.user);
@@ -263,7 +303,9 @@ async function checkExistingLogin() {
       );
 
     } else {
-      $("logoutBtn").hidden = true;
+      if ($("logoutBtn")) {
+        $("logoutBtn").hidden = true;
+      }
     }
 
   } catch (error) {
@@ -316,7 +358,7 @@ async function openMemberProfile() {
       throw new Error("Your profile record could not be found.");
     }
 
-    // Fill in profile information.
+    // Basic profile information.
 
     $("profileName").value =
       profile.display_name || "";
@@ -337,7 +379,28 @@ async function openMemberProfile() {
       profile.preferred_city || "";
 
     $("profileGoal").value =
-      profile.relationship_goal || "marriage";
+      ALLOWED_GOALS.includes(profile.relationship_goal)
+        ? profile.relationship_goal
+        : "marriage";
+
+    // NEW PROFILE FIELDS.
+
+    $("profileEducation").value =
+      profile.education || "";
+
+    $("profileOccupation").value =
+      profile.occupation || "";
+
+    $("profileMaritalStatus").value =
+      profile.marital_status || "";
+
+    $("profileInterests").value =
+      profile.interests || "";
+
+    $("profileLifestyle").value =
+      profile.lifestyle || "";
+
+    // Age preferences.
 
     $("profileMinAge").value =
       profile.min_age_preference ?? 18;
@@ -347,6 +410,8 @@ async function openMemberProfile() {
 
     $("profileBio").value =
       profile.bio || "";
+
+    // Photo.
 
     $("profilePhoto").value = "";
 
@@ -382,7 +447,7 @@ async function openMemberProfile() {
   }
 }
 
-// Make the function available to the HTML button.
+// Make function available to the HTML button.
 window.openMemberProfile = openMemberProfile;
 
 // ======================================
@@ -397,6 +462,7 @@ if ($("editProfileForm")) {
 
     try {
       saveButton.disabled = true;
+
       showProfileMessage("Saving your PairHi profile...");
 
       const user = await getCurrentUser();
@@ -407,23 +473,57 @@ if ($("editProfileForm")) {
         );
       }
 
+      // Read basic profile fields.
+
       const name = $("profileName").value.trim();
       const age = Number($("profileAge").value);
       const gender = $("profileGender").value;
       const preferredGender =
         $("profilePreferredGender").value;
+
       const city = $("profileCity").value.trim();
+
       const preferredCity =
         $("profilePreferredCity").value.trim();
+
       const goal = $("profileGoal").value;
+
       const minAge = Number($("profileMinAge").value);
       const maxAge = Number($("profileMaxAge").value);
+
       const bio = $("profileBio").value.trim();
+
+      // Read the five additional fields.
+
+      const education =
+        $("profileEducation").value.trim();
+
+      const occupation =
+        $("profileOccupation").value.trim();
+
+      const maritalStatus =
+        $("profileMaritalStatus").value;
+
+      const interests =
+        $("profileInterests").value.trim();
+
+      const lifestyle =
+        $("profileLifestyle").value.trim();
+
       const photoInput = $("profilePhoto");
+
       const photoFile =
         photoInput.files && photoInput.files[0];
 
-      if (!name || !city || !bio || !gender || !preferredGender) {
+      // Validate required information.
+
+      if (
+        !name ||
+        !city ||
+        !bio ||
+        !gender ||
+        !preferredGender
+      ) {
         throw new Error(
           "Please complete all required profile fields."
         );
@@ -432,6 +532,12 @@ if ($("editProfileForm")) {
       if (!Number.isInteger(age) || age < 18 || age > 100) {
         throw new Error(
           "Please enter a valid age between 18 and 100."
+        );
+      }
+
+      if (!ALLOWED_GOALS.includes(goal)) {
+        throw new Error(
+          "Please select one of the three approved relationship goals."
         );
       }
 
@@ -446,6 +552,20 @@ if ($("editProfileForm")) {
           "Please check your preferred age range."
         );
       }
+
+      if (education.length > 150 || occupation.length > 150) {
+        throw new Error(
+          "Education and occupation must be 150 characters or fewer."
+        );
+      }
+
+      if (interests.length > 500 || lifestyle.length > 500) {
+        throw new Error(
+          "Interests and lifestyle must be 500 characters or fewer."
+        );
+      }
+
+      // Validate photograph.
 
       if (photoFile) {
         const allowedTypes = [
@@ -467,7 +587,7 @@ if ($("editProfileForm")) {
         }
       }
 
-      // Read existing saved photo path.
+      // Read existing photo path.
 
       const { data: existingProfile, error: existingError } =
         await supabaseClient
@@ -504,8 +624,8 @@ if ($("editProfileForm")) {
         if (uploadError) throw uploadError;
       }
 
-      // Verification status is not included.
-      // Only an administrator can approve profiles.
+      // Save profile information.
+      // Verification status remains administrator-controlled.
 
       const profileData = {
         display_name: name,
@@ -514,9 +634,18 @@ if ($("editProfileForm")) {
         preferred_gender: preferredGender,
         city: city,
         preferred_city: preferredCity || null,
-        relationship_goal: goalValue(goal),
+
+        relationship_goal: goal,
+
+        education: education || null,
+        occupation: occupation || null,
+        marital_status: maritalStatus || null,
+        interests: interests || null,
+        lifestyle: lifestyle || null,
+
         min_age_preference: minAge,
         max_age_preference: maxAge,
+
         bio: bio,
         photo_url: photoPath
       };
@@ -532,7 +661,7 @@ if ($("editProfileForm")) {
       if (updateError) throw updateError;
 
       showProfileMessage(
-        "Your profile has been saved. It will remain pending until it is reviewed and approved."
+        "Your profile has been saved successfully. It will remain pending until reviewed and approved."
       );
 
       photoInput.value = "";
@@ -563,155 +692,29 @@ if ($("editProfileForm")) {
 }
 
 // ======================================
-// PAIRHI DEMO DISCOVERY PROFILES
-// These are sample profiles, not real users.
-// ======================================
-
-const profiles = [
-  {
-    name: "Aarohi",
-    age: 28,
-    city: "Delhi",
-    intent: "Marriage",
-    bio: "I value kindness, family, honest communication and building a life with shared purpose. I enjoy books, travel and trying new food.",
-    tags: ["Family-oriented", "Travel", "Reading"],
-    score: "Strong values overlap",
-    photo: "linear-gradient(140deg,#d8a6a5,#92566b)"
-  },
-  {
-    name: "Rohan",
-    age: 30,
-    city: "Jaipur",
-    intent: "Long-term relationship",
-    bio: "Grounded, curious and close to my family. Looking for a respectful partnership where both people grow together.",
-    tags: ["Entrepreneurship", "Fitness", "Culture"],
-    score: "Good potential",
-    photo: "linear-gradient(140deg,#c5a18b,#805e52)"
-  },
-  {
-    name: "Meera",
-    age: 27,
-    city: "Pune",
-    intent: "Marriage",
-    bio: "A thoughtful person who loves music, meaningful conversations and weekend nature escapes. Honesty matters most to me.",
-    tags: ["Music", "Nature", "Family"],
-    score: "Strong values overlap",
-    photo: "linear-gradient(140deg,#d6a7b8,#a45e7d)"
-  },
-  {
-    name: "Kabir",
-    age: 31,
-    city: "Mumbai",
-    intent: "Long-term relationship",
-    bio: "I believe a strong relationship is built on friendship, trust and laughter. Hoping to meet someone intentional and kind.",
-    tags: ["Design", "Cooking", "Films"],
-    score: "Good potential",
-    photo: "linear-gradient(140deg,#c4a88b,#715e55)"
-  }
-];
-
-let current = null;
-let index = 0;
-
-function render() {
-  const filterElement = $("intentFilter");
-
-  if (!filterElement) return;
-
-  const filter = filterElement.value;
-
-  const visible = profiles.filter(
-    p => filter === "all" || p.intent === filter
-  );
-
-  if (!visible.length) {
-    $("feedback").textContent =
-      "No sample profiles in this category.";
-    return;
-  }
-
-  current = visible[index % visible.length];
-
-  $("personName").textContent =
-    `${current.name}, ${current.age}`;
-
-  $("personLocation").textContent =
-    `${current.city} · India`;
-
-  $("personIntent").textContent =
-    current.intent;
-
-  $("personBio").textContent =
-    current.bio;
-
-  $("personTags").innerHTML = current.tags
-    .map(t => `<span>${t}</span>`)
-    .join("");
-
-  $("compatScore").textContent =
-    current.score;
-
-  $("photo").style.background =
-    current.photo;
-
-  $("photoNumber").textContent =
-    `${(index % visible.length) + 1} / ${visible.length}`;
-}
-
-function advance(message) {
-  $("feedback").textContent = message;
-  index++;
-  render();
-}
-
-if ($("skipBtn")) {
-  $("skipBtn").addEventListener("click", () => {
-    advance(
-      "Passed on this sample profile. Your next discovery is ready."
-    );
-  });
-}
-
-if ($("likeBtn")) {
-  $("likeBtn").addEventListener("click", () => {
-    if (!current) return;
-
-    advance(
-      `Interest recorded in this local demo for ${current.name}. Real mutual matching requires registered users.`
-    );
-  });
-}
-
-if ($("intentFilter")) {
-  $("intentFilter").addEventListener("change", () => {
-    index = 0;
-    render();
-
-    $("feedback").textContent =
-      "Showing profiles for your selected intention.";
-  });
-}
-
-// ======================================
-// FOOTER AND STARTUP
+// FOOTER YEAR
 // ======================================
 
 if ($("year")) {
   $("year").textContent = new Date().getFullYear();
 }
 
-render();
+// ======================================
+// STARTUP
+// ======================================
+
 checkExistingLogin();
 
 // ======================================
 // SERVICE WORKER
 // ======================================
+
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
     navigator.serviceWorker
       .register("./sw.js")
-      .catch(error =>
-        console.log("Service worker:", error)
-      );
+      .catch(error => {
+        console.log("Service worker:", error);
+      });
   });
 }
