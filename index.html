@@ -27,10 +27,11 @@
   </a>
 
   <nav>
-    <button class="outline" id="profileBtn" type="button"
-      onclick="if(typeof window.openMemberProfile==='function'){window.openMemberProfile()}else{alert('Please refresh PairHi.')}">
-      My profile
+    <button class="outline" id="settingsBtn" type="button"
+      onclick="openPairHiSettings()">
+      ⚙ Settings
     </button>
+
     <button class="outline" id="logoutBtn" type="button" hidden>
       Log out
     </button>
@@ -182,7 +183,7 @@
 
     <div class="pairhi-welcome">
       <h2>My PairHi profile</h2>
-      <p>Manage your personal information, photographs and account settings.</p>
+      <p>Manage your personal information and photographs.</p>
     </div>
 
     <h2 class="pairhi-section-title">Your profile</h2>
@@ -199,87 +200,79 @@
       </button>
     </div>
 
-    <h2 class="pairhi-section-title">Account settings</h2>
+    <h2 class="pairhi-section-title">Photographs</h2>
 
-    <div class="pairhi-settings-list">
-      <button class="pairhi-settings-item" type="button" onclick="openPairHiSettings()">
-        ⚙️ Settings
-        <small>Account, privacy, safety and legal information</small>
-      </button>
-
-      <button class="pairhi-settings-item" type="button"
+    <div class="pairhi-panel">
+      <p style="color:var(--muted);line-height:1.7">
+        Manage your uploaded profile photographs.
+      </p>
+      <button class="pairhi-secondary-button" type="button"
         onclick="if(typeof window.openMemberProfile==='function')window.openMemberProfile()">
         📷 Manage photographs
-        <small>View and update your profile photographs</small>
-      </button>
-
-      <button class="pairhi-settings-item" type="button"
-        onclick="document.getElementById('logoutBtn').click()">
-        ↪ Log out
-        <small>Securely sign out of your PairHi account</small>
       </button>
     </div>
 
-    <!-- SETTINGS SUBPAGE: ONLY ACCESSIBLE FROM MY PROFILE -->
-    <div id="pairhiSettingsView" hidden>
+  </section>
 
-      <div style="display:flex;align-items:center;gap:12px;margin:22px 0">
-        <button class="pairhi-secondary-button" type="button" onclick="closePairHiSettings()">← Back</button>
-        <h2 style="font-family:inherit;font-size:21px;margin:0">Settings</h2>
-      </div>
+  <!-- SETTINGS VIEW: OPENED FROM HEADER -->
+  <section id="pairhiSettingsPage" class="pairhi-page" data-page="settings">
 
-      <h3 class="pairhi-section-title">Account</h3>
-      <div class="pairhi-panel">
-        <strong>Account management</strong>
-        <p style="color:var(--muted);line-height:1.7">
-          Manage your profile details and sign-in information through your account.
-        </p>
-        <button class="pairhi-secondary-button" type="button"
-          onclick="if(typeof window.openMemberProfile==='function')window.openMemberProfile()">
-          Edit account profile
-        </button>
-      </div>
+    <div style="display:flex;align-items:center;gap:12px;margin:10px 0 22px">
+      <button class="pairhi-secondary-button" type="button"
+        onclick="closePairHiSettings()">← Back</button>
+      <h2 style="font-family:inherit;font-size:21px;margin:0">Settings</h2>
+    </div>
 
-      <h3 class="pairhi-section-title">Privacy and security</h3>
-      <div class="pairhi-panel">
-        <strong>Your privacy matters</strong>
-        <p style="color:var(--muted);line-height:1.7">
-          Only approved profiles are displayed in discovery. Use the report and block
-          options if you experience unwanted behaviour.
-        </p>
-      </div>
+    <h3 class="pairhi-section-title">Account</h3>
+    <div class="pairhi-panel">
+      <strong>Account management</strong>
+      <p style="color:var(--muted);line-height:1.7">
+        Manage your profile details and sign-in information through your account.
+      </p>
+      <button class="pairhi-secondary-button" type="button"
+        onclick="if(typeof window.openMemberProfile==='function')window.openMemberProfile()">
+        Edit account profile
+      </button>
+    </div>
 
-      <h3 class="pairhi-section-title">Safety</h3>
-      <div class="pairhi-panel">
-        <strong>Community guidelines</strong>
-        <p style="color:var(--muted);line-height:1.7">
-          Be respectful, honest and considerate. Never share passwords, OTPs,
-          financial information or sensitive personal details with other members.
-        </p>
-      </div>
+    <h3 class="pairhi-section-title">Privacy and security</h3>
+    <div class="pairhi-panel">
+      <strong>Your privacy matters</strong>
+      <p style="color:var(--muted);line-height:1.7">
+        Only approved profiles are displayed in discovery. Use the report and block
+        options if you experience unwanted behaviour.
+      </p>
+    </div>
 
-      <h3 class="pairhi-section-title">Legal information</h3>
-      <div class="pairhi-panel">
-        <strong>Terms and conditions</strong>
-        <p style="color:var(--muted);line-height:1.7">
-          PairHi is intended for adults aged 18 and above. Members are responsible
-          for the accuracy of the information they provide.
-        </p>
-      </div>
+    <h3 class="pairhi-section-title">Safety</h3>
+    <div class="pairhi-panel">
+      <strong>Community guidelines</strong>
+      <p style="color:var(--muted);line-height:1.7">
+        Be respectful, honest and considerate. Never share passwords, OTPs,
+        financial information or sensitive personal details with other members.
+      </p>
+    </div>
 
-      <div class="pairhi-panel">
-        <strong>Licences and acknowledgements</strong>
-        <p style="color:var(--muted);line-height:1.7">
-          PairHi uses third-party software and services, including Supabase.
-          Their respective licence terms apply.
-        </p>
-      </div>
+    <h3 class="pairhi-section-title">Legal information</h3>
+    <div class="pairhi-panel">
+      <strong>Terms and conditions</strong>
+      <p style="color:var(--muted);line-height:1.7">
+        PairHi is intended for adults aged 18 and above. Members are responsible
+        for the accuracy of the information they provide.
+      </p>
+    </div>
 
-      <div class="pairhi-panel">
-        <strong>PairHi</strong>
-        <p style="color:var(--muted);margin-bottom:0">Real People. Real Profiles. Real Connections.</p>
-      </div>
+    <div class="pairhi-panel">
+      <strong>Licences and acknowledgements</strong>
+      <p style="color:var(--muted);line-height:1.7">
+        PairHi uses third-party software and services, including Supabase.
+        Their respective licence terms apply.
+      </p>
+    </div>
 
+    <div class="pairhi-panel">
+      <strong>PairHi</strong>
+      <p style="color:var(--muted);margin-bottom:0">Real People. Real Profiles. Real Connections.</p>
     </div>
 
   </section>
@@ -516,7 +509,7 @@
 <!-- PAGE NAVIGATION AND SWIPE -->
 <script>
 function showPairHiPage(page) {
-  if (!["home", "discover", "profile"].includes(page)) return;
+  if (!["home", "discover", "profile", "settings"].includes(page)) return;
 
   document.querySelectorAll(".pairhi-page").forEach(section => {
     section.classList.toggle("active", section.dataset.page === page);
@@ -526,26 +519,16 @@ function showPairHiPage(page) {
     button.classList.toggle("active", button.dataset.nav === page);
   });
 
-  const settings = document.getElementById("pairhiSettingsView");
-  if (settings) settings.hidden = true;
-
   window.scrollTo({ top: 0, behavior: "smooth" });
   window.pairHiCurrentPage = page;
 }
 
 function openPairHiSettings() {
-  showPairHiPage("profile");
-  const settings = document.getElementById("pairhiSettingsView");
-  if (settings) {
-    settings.hidden = false;
-    settings.scrollIntoView({ behavior: "smooth", block: "start" });
-  }
+  showPairHiPage("settings");
 }
 
 function closePairHiSettings() {
-  const settings = document.getElementById("pairhiSettingsView");
-  if (settings) settings.hidden = true;
-  window.scrollTo({ top: 0, behavior: "smooth" });
+  showPairHiPage("home");
 }
 
 (function() {
@@ -572,6 +555,8 @@ function closePairHiSettings() {
 
     const current = window.pairHiCurrentPage || "home";
     const index = pages.indexOf(current);
+    if (index === -1) return;
+
     const next = dx < 0 ? index + 1 : index - 1;
 
     if (next >= 0 && next < pages.length) {
