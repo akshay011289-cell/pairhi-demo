@@ -18,7 +18,8 @@
 <body>
 
 <header class="topbar">
-  <a class="brand" href="#" aria-label="PairHi home" onclick="showPairHiPage('home');return false;">
+  <a class="brand" href="#" aria-label="PairHi home"
+     onclick="showPairHiPage('home');return false;">
     <span class="brandmark">♥</span>
     <span>
       PairHi
@@ -27,11 +28,6 @@
   </a>
 
   <nav>
-    <button class="outline" id="settingsBtn" type="button"
-      onclick="openPairHiSettings()">
-      ⚙ Settings
-    </button>
-
     <button class="outline" id="logoutBtn" type="button" hidden>
       Log out
     </button>
@@ -40,7 +36,7 @@
 
 <main class="pairhi-app">
 
-  <!-- HOME -->
+  <!-- HOME PAGE -->
   <section id="homePage" class="pairhi-page active" data-page="home">
 
     <div class="pairhi-welcome">
@@ -50,7 +46,8 @@
       <h1>Real connections begin here. ♥</h1>
       <p>A thoughtful space for people looking for serious relationships and marriage.</p>
       <div style="margin-top:18px">
-        <button class="primary" type="button" onclick="showPairHiPage('discover')">
+        <button class="primary" type="button"
+          onclick="showPairHiPage('discover')">
           Discover people →
         </button>
       </div>
@@ -60,7 +57,9 @@
 
     <div class="pairhi-panel">
       <div style="font-size:22px;margin-bottom:8px">💕</div>
-      <strong style="font-size:16px;color:var(--plum)">Meaningful connections, without a price tag.</strong>
+      <strong style="font-size:16px;color:var(--plum)">
+        Meaningful connections, without a price tag.
+      </strong>
       <p style="color:var(--muted);line-height:1.7;margin-bottom:0">
         PairHi is free to use. Discover compatible people, express interest,
         and start conversations when interest is mutual.
@@ -87,7 +86,7 @@
         <strong>♥</strong>
         <span>Your mutual matches</span>
         <p style="font-size:11px;color:var(--muted);margin-bottom:0">
-          Open Discover to view matches.
+          Visit Messages to continue conversations.
         </p>
       </div>
       <div class="pairhi-stat">
@@ -100,7 +99,8 @@
     </div>
 
     <h2 class="pairhi-section-title">Notifications</h2>
-    <div class="pairhi-panel">
+
+    <div class="pairhi-panel" id="homeNotifications">
       <p style="color:var(--muted);line-height:1.7;margin:0">
         Your account and connection updates will appear here as notification features are added.
       </p>
@@ -108,7 +108,7 @@
 
   </section>
 
-  <!-- DISCOVER -->
+  <!-- DISCOVER PAGE -->
   <section id="discover" class="pairhi-page discover" data-page="discover">
 
     <div class="section-heading">
@@ -178,108 +178,266 @@
 
   </section>
 
-  <!-- MY PROFILE -->
-  <section id="profilePage" class="pairhi-page" data-page="profile">
+  <!-- MESSAGES PAGE -->
+  <section id="messagesPage" class="pairhi-page" data-page="messages">
 
     <div class="pairhi-welcome">
-      <h2>My PairHi profile</h2>
-      <p>Manage your personal information and photographs.</p>
+      <h2>Your conversations 💬</h2>
+      <p>Stay connected with people you've mutually matched with.</p>
     </div>
 
-    <h2 class="pairhi-section-title">Your profile</h2>
+    <h2 class="pairhi-section-title">Messages</h2>
 
     <div class="pairhi-panel">
-      <div style="font-size:32px;margin-bottom:10px">👤</div>
-      <strong style="font-size:16px;color:var(--plum)">Make your profile stand out.</strong>
-      <p style="color:var(--muted);line-height:1.7">
-        Add your photograph, personal details, interests and relationship preferences.
-      </p>
-      <button class="primary" type="button"
-        onclick="if(typeof window.openMemberProfile==='function')window.openMemberProfile()">
-        Edit my profile
-      </button>
-    </div>
-
-    <h2 class="pairhi-section-title">Photographs</h2>
-
-    <div class="pairhi-panel">
-      <p style="color:var(--muted);line-height:1.7">
-        Manage your uploaded profile photographs.
-      </p>
-      <button class="pairhi-secondary-button" type="button"
-        onclick="if(typeof window.openMemberProfile==='function')window.openMemberProfile()">
-        📷 Manage photographs
-      </button>
+      <div id="messagesInbox">
+        <div style="text-align:center;padding:25px 10px">
+          <div style="font-size:38px;margin-bottom:12px">💌</div>
+          <strong style="color:var(--plum)">Your conversations will appear here</strong>
+          <p style="color:var(--muted);line-height:1.7">
+            When you connect through a mutual match, you can continue your conversation here.
+          </p>
+        </div>
+      </div>
     </div>
 
   </section>
 
-  <!-- SETTINGS VIEW: OPENED FROM HEADER -->
-  <section id="pairhiSettingsPage" class="pairhi-page" data-page="settings">
+  <!-- MY PROFILE PAGE -->
+  <section id="profilePage" class="pairhi-page" data-page="profile">
 
-    <div style="display:flex;align-items:center;gap:12px;margin:10px 0 22px">
-      <button class="pairhi-secondary-button" type="button"
-        onclick="closePairHiSettings()">← Back</button>
-      <h2 style="font-family:inherit;font-size:21px;margin:0">Settings</h2>
+    <div class="pairhi-welcome">
+      <h2>My PairHi profile</h2>
+      <p>Your identity, your preferences and your story.</p>
     </div>
 
-    <h3 class="pairhi-section-title">Account</h3>
+    <h2 class="pairhi-section-title">Personal information</h2>
+
     <div class="pairhi-panel">
-      <strong>Account management</strong>
+      <div id="myProfileSummary">
+        <div style="text-align:center;padding:18px 8px">
+          <div style="font-size:38px">👤</div>
+          <strong style="color:var(--plum)">Your profile</strong>
+          <p style="color:var(--muted);line-height:1.7">
+            Your profile information will appear here after your account details are loaded.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <h2 class="pairhi-section-title">Edit your profile</h2>
+
+    <div class="pairhi-panel">
       <p style="color:var(--muted);line-height:1.7">
-        Manage your profile details and sign-in information through your account.
+        Keep your information and preferences up to date.
       </p>
-      <button class="pairhi-secondary-button" type="button"
-        onclick="if(typeof window.openMemberProfile==='function')window.openMemberProfile()">
-        Edit account profile
+
+      <form id="editProfileForm">
+
+        <p class="required-note">
+          Complete the required fields. Your profile photograph is mandatory.
+          Additional personal details are optional.
+        </p>
+
+        <div class="form-field">
+          <label for="profileName">Full name *</label>
+          <input id="profileName" type="text" required maxlength="100" autocomplete="name">
+        </div>
+
+        <div class="form-field">
+          <label for="profileAge">Age *</label>
+          <input id="profileAge" type="number" min="18" max="100" required inputmode="numeric">
+        </div>
+
+        <div class="form-field">
+          <label for="profileGender">Your gender *</label>
+          <select id="profileGender" required>
+            <option value="">Select gender</option>
+            <option value="male">Male</option>
+            <option value="female">Female</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+
+        <div class="form-field">
+          <label for="profilePreferredGender">Interested in *</label>
+          <select id="profilePreferredGender" required>
+            <option value="">Select preference</option>
+            <option value="male">Men</option>
+            <option value="female">Women</option>
+            <option value="any">Everyone</option>
+          </select>
+        </div>
+
+        <div class="form-field">
+          <label for="profileCity">Your city *</label>
+          <input id="profileCity" type="text" required maxlength="100" placeholder="Your current city">
+        </div>
+
+        <div class="form-field">
+          <label for="profilePreferredCity">Preferred city</label>
+          <input id="profilePreferredCity" type="text" maxlength="100" placeholder="Optional">
+        </div>
+
+        <div class="form-field">
+          <label for="profileGoal">Relationship goal *</label>
+          <select id="profileGoal" required>
+            <option value="marriage">Marriage</option>
+            <option value="serious_relationship">Long-term Serious Relationship</option>
+            <option value="marriage_oriented_serious_relationship">Marriage-Oriented Serious Relationship</option>
+          </select>
+        </div>
+
+        <div class="form-field">
+          <label for="profileEducation">Education</label>
+          <input id="profileEducation" type="text" maxlength="150" placeholder="Your qualification or degree">
+        </div>
+
+        <div class="form-field">
+          <label for="profileOccupation">Occupation</label>
+          <input id="profileOccupation" type="text" maxlength="150" placeholder="Your profession or work">
+        </div>
+
+        <div class="form-field">
+          <label for="profileMaritalStatus">Marital status</label>
+          <select id="profileMaritalStatus">
+            <option value="">Prefer not to say</option>
+            <option value="never_married">Never married</option>
+            <option value="divorced">Divorced</option>
+            <option value="widowed">Widowed</option>
+            <option value="separated">Separated</option>
+          </select>
+        </div>
+
+        <div class="form-field">
+          <label for="profileInterests">Interests and hobbies</label>
+          <textarea id="profileInterests" maxlength="500"
+            placeholder="For example: travelling, reading, music, fitness..."></textarea>
+        </div>
+
+        <div class="form-field">
+          <label for="profileLifestyle">Lifestyle</label>
+          <textarea id="profileLifestyle" maxlength="500"
+            placeholder="Describe your lifestyle, habits and preferences..."></textarea>
+        </div>
+
+        <div class="form-field">
+          <label for="profileMinAge">Preferred minimum age *</label>
+          <input id="profileMinAge" type="number" min="18" max="100" value="18" required inputmode="numeric">
+        </div>
+
+        <div class="form-field">
+          <label for="profileMaxAge">Preferred maximum age *</label>
+          <input id="profileMaxAge" type="number" min="18" max="100" value="60" required inputmode="numeric">
+        </div>
+
+        <div class="form-field">
+          <label for="profileBio">About yourself *</label>
+          <textarea id="profileBio" required maxlength="1000"
+            placeholder="Tell people about your personality, interests, values and what you are looking for."></textarea>
+        </div>
+
+        <div class="form-field">
+          <label>My uploaded photographs</label>
+          <div id="myPhotoGallery"
+            style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px">
+          </div>
+          <div id="photoGalleryMessage" class="form-help" role="status">
+            Your uploaded photographs will appear here.
+          </div>
+        </div>
+
+        <div class="form-field">
+          <label for="profilePhoto">Profile photograph *</label>
+          <input id="profilePhoto" type="file" accept="image/jpeg,image/png,image/webp">
+          <div class="form-help">
+            JPG, PNG or WEBP format. Maximum file size: 5 MB.
+            You can leave this empty when updating an existing photo.
+          </div>
+        </div>
+
+        <div class="dialog-actions">
+          <button class="primary" id="saveProfileBtn" type="submit">
+            Save my profile
+          </button>
+        </div>
+
+        <div class="dialog-message" id="profileMessage" role="status" aria-live="polite"></div>
+
+      </form>
+    </div>
+
+    <!-- SETTINGS INSIDE MY PROFILE -->
+    <h2 class="pairhi-section-title">Settings</h2>
+
+    <div class="pairhi-settings-list">
+
+      <button class="pairhi-settings-item" type="button"
+        onclick="toggleProfileSettings('accountSettings')">
+        👤 Account
+        <small>Account management and profile information</small>
       </button>
-    </div>
 
-    <h3 class="pairhi-section-title">Privacy and security</h3>
-    <div class="pairhi-panel">
-      <strong>Your privacy matters</strong>
-      <p style="color:var(--muted);line-height:1.7">
-        Only approved profiles are displayed in discovery. Use the report and block
-        options if you experience unwanted behaviour.
-      </p>
-    </div>
+      <div id="accountSettings" class="pairhi-panel" hidden>
+        <strong>Account management</strong>
+        <p style="color:var(--muted);line-height:1.7">
+          Manage your personal information and account details above.
+        </p>
+      </div>
 
-    <h3 class="pairhi-section-title">Safety</h3>
-    <div class="pairhi-panel">
-      <strong>Community guidelines</strong>
-      <p style="color:var(--muted);line-height:1.7">
-        Be respectful, honest and considerate. Never share passwords, OTPs,
-        financial information or sensitive personal details with other members.
-      </p>
-    </div>
+      <button class="pairhi-settings-item" type="button"
+        onclick="toggleProfileSettings('privacySettings')">
+        🔒 Privacy and security
+        <small>Your privacy and account safety</small>
+      </button>
 
-    <h3 class="pairhi-section-title">Legal information</h3>
-    <div class="pairhi-panel">
-      <strong>Terms and conditions</strong>
-      <p style="color:var(--muted);line-height:1.7">
-        PairHi is intended for adults aged 18 and above. Members are responsible
-        for the accuracy of the information they provide.
-      </p>
-    </div>
+      <div id="privacySettings" class="pairhi-panel" hidden>
+        <strong>Your privacy matters</strong>
+        <p style="color:var(--muted);line-height:1.7">
+          Only approved profiles are displayed in discovery. Use the report and block
+          options if you experience unwanted behaviour.
+        </p>
+      </div>
 
-    <div class="pairhi-panel">
-      <strong>Licences and acknowledgements</strong>
-      <p style="color:var(--muted);line-height:1.7">
-        PairHi uses third-party software and services, including Supabase.
-        Their respective licence terms apply.
-      </p>
-    </div>
+      <button class="pairhi-settings-item" type="button"
+        onclick="toggleProfileSettings('safetySettings')">
+        🛡️ Safety and community
+        <small>Guidelines for a respectful community</small>
+      </button>
 
-    <div class="pairhi-panel">
-      <strong>PairHi</strong>
-      <p style="color:var(--muted);margin-bottom:0">Real People. Real Profiles. Real Connections.</p>
+      <div id="safetySettings" class="pairhi-panel" hidden>
+        <strong>Community guidelines</strong>
+        <p style="color:var(--muted);line-height:1.7">
+          Be respectful, honest and considerate. Never share passwords, OTPs,
+          financial information or sensitive personal details with other members.
+        </p>
+      </div>
+
+      <button class="pairhi-settings-item" type="button"
+        onclick="toggleProfileSettings('legalSettings')">
+        📄 Legal information
+        <small>Terms and licences</small>
+      </button>
+
+      <div id="legalSettings" class="pairhi-panel" hidden>
+        <strong>Terms and conditions</strong>
+        <p style="color:var(--muted);line-height:1.7">
+          PairHi is intended for adults aged 18 and above. Members are responsible
+          for the accuracy of the information they provide.
+        </p>
+        <strong>Licences and acknowledgements</strong>
+        <p style="color:var(--muted);line-height:1.7">
+          PairHi uses third-party software and services, including Supabase.
+          Their respective licence terms apply.
+        </p>
+      </div>
+
     </div>
 
   </section>
 
 </main>
 
-<!-- FIXED BOTTOM NAVIGATION -->
+<!-- FOUR-ITEM BOTTOM NAVIGATION -->
 <nav class="pairhi-bottom-nav" aria-label="Main navigation">
 
   <button class="pairhi-nav-item active" type="button"
@@ -292,6 +450,12 @@
     data-nav="discover" onclick="showPairHiPage('discover')">
     <span class="nav-icon">♡</span>
     Discover
+  </button>
+
+  <button class="pairhi-nav-item" type="button"
+    data-nav="messages" onclick="showPairHiPage('messages')">
+    <span class="nav-icon">💬</span>
+    Messages
   </button>
 
   <button class="pairhi-nav-item" type="button"
@@ -357,159 +521,21 @@
   </div>
 </dialog>
 
-<!-- EDIT PROFILE DIALOG -->
-<dialog id="editProfileDialog">
+<!-- PHOTO VIEWER: USED FOR ENLARGED PHOTOGRAPHS -->
+<dialog id="photoViewerDialog">
   <div class="dialog-inner">
-
-    <div class="dialog-header">
-      <div>
-        <h2>My PairHi Profile</h2>
-        <p>Complete your details to help us find compatible connections.</p>
-      </div>
-      <button class="dialog-close" type="button" aria-label="Close"
-        onclick="document.getElementById('editProfileDialog').close()">×</button>
-    </div>
-
-    <form id="editProfileForm">
-
-      <p class="required-note">
-        Complete the required fields. Your profile photograph is mandatory.
-        Additional personal details are optional.
-      </p>
-
-      <div class="form-field">
-        <label for="profileName">Full name *</label>
-        <input id="profileName" type="text" required maxlength="100" autocomplete="name">
-      </div>
-
-      <div class="form-field">
-        <label for="profileAge">Age *</label>
-        <input id="profileAge" type="number" min="18" max="100" required inputmode="numeric">
-      </div>
-
-      <div class="form-field">
-        <label for="profileGender">Your gender *</label>
-        <select id="profileGender" required>
-          <option value="">Select gender</option>
-          <option value="male">Male</option>
-          <option value="female">Female</option>
-          <option value="other">Other</option>
-        </select>
-      </div>
-
-      <div class="form-field">
-        <label for="profilePreferredGender">Interested in *</label>
-        <select id="profilePreferredGender" required>
-          <option value="">Select preference</option>
-          <option value="male">Men</option>
-          <option value="female">Women</option>
-          <option value="any">Everyone</option>
-        </select>
-      </div>
-
-      <div class="form-field">
-        <label for="profileCity">Your city *</label>
-        <input id="profileCity" type="text" required maxlength="100" placeholder="Your current city">
-      </div>
-
-      <div class="form-field">
-        <label for="profilePreferredCity">Preferred city</label>
-        <input id="profilePreferredCity" type="text" maxlength="100" placeholder="Optional">
-      </div>
-
-      <div class="form-field">
-        <label for="profileGoal">Relationship goal *</label>
-        <select id="profileGoal" required>
-          <option value="marriage">Marriage</option>
-          <option value="serious_relationship">Long-term Serious Relationship</option>
-          <option value="marriage_oriented_serious_relationship">Marriage-Oriented Serious Relationship</option>
-        </select>
-      </div>
-
-      <div class="form-field">
-        <label for="profileEducation">Education</label>
-        <input id="profileEducation" type="text" maxlength="150" placeholder="Your qualification or degree">
-      </div>
-
-      <div class="form-field">
-        <label for="profileOccupation">Occupation</label>
-        <input id="profileOccupation" type="text" maxlength="150" placeholder="Your profession or work">
-      </div>
-
-      <div class="form-field">
-        <label for="profileMaritalStatus">Marital status</label>
-        <select id="profileMaritalStatus">
-          <option value="">Prefer not to say</option>
-          <option value="never_married">Never married</option>
-          <option value="divorced">Divorced</option>
-          <option value="widowed">Widowed</option>
-          <option value="separated">Separated</option>
-        </select>
-      </div>
-
-      <div class="form-field">
-        <label for="profileInterests">Interests and hobbies</label>
-        <textarea id="profileInterests" maxlength="500"
-          placeholder="For example: travelling, reading, music, fitness..."></textarea>
-      </div>
-
-      <div class="form-field">
-        <label for="profileLifestyle">Lifestyle</label>
-        <textarea id="profileLifestyle" maxlength="500"
-          placeholder="Describe your lifestyle, habits and preferences..."></textarea>
-      </div>
-
-      <div class="form-field">
-        <label for="profileMinAge">Preferred minimum age *</label>
-        <input id="profileMinAge" type="number" min="18" max="100" value="18" required inputmode="numeric">
-      </div>
-
-      <div class="form-field">
-        <label for="profileMaxAge">Preferred maximum age *</label>
-        <input id="profileMaxAge" type="number" min="18" max="100" value="60" required inputmode="numeric">
-      </div>
-
-      <div class="form-field">
-        <label for="profileBio">About yourself *</label>
-        <textarea id="profileBio" required maxlength="1000"
-          placeholder="Tell people about your personality, interests, values and what you are looking for."></textarea>
-      </div>
-
-      <div class="form-field">
-        <label>My uploaded photographs</label>
-        <div id="myPhotoGallery"
-          style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px">
-        </div>
-        <div id="photoGalleryMessage" class="form-help" role="status">
-          Your uploaded photographs will appear here.
-        </div>
-      </div>
-
-      <div class="form-field">
-        <label for="profilePhoto">Profile photograph *</label>
-        <input id="profilePhoto" type="file" accept="image/jpeg,image/png,image/webp" required>
-        <div class="form-help">
-          JPG, PNG or WEBP format. Maximum file size: 5 MB.
-          You can leave this empty when updating an existing photo.
-        </div>
-      </div>
-
-      <div class="dialog-actions">
-        <button class="primary" id="saveProfileBtn" type="submit">Save my profile</button>
-        <button class="outline" type="button"
-          onclick="document.getElementById('editProfileDialog').close()">Cancel</button>
-      </div>
-
-      <div class="dialog-message" id="profileMessage" role="status" aria-live="polite"></div>
-
-    </form>
+    <button class="dialog-close" type="button"
+      onclick="document.getElementById('photoViewerDialog').close()">×</button>
+    <img id="photoViewerImage" alt="Enlarged profile photograph"
+      style="display:block;width:100%;height:auto;max-height:80vh;object-fit:contain">
   </div>
 </dialog>
 
-<!-- PAGE NAVIGATION AND SWIPE -->
+<!-- PAGE NAVIGATION, SETTINGS AND SWIPE -->
 <script>
 function showPairHiPage(page) {
-  if (!["home", "discover", "profile", "settings"].includes(page)) return;
+  const allowedPages = ["home", "discover", "messages", "profile"];
+  if (!allowedPages.includes(page)) return;
 
   document.querySelectorAll(".pairhi-page").forEach(section => {
     section.classList.toggle("active", section.dataset.page === page);
@@ -521,23 +547,31 @@ function showPairHiPage(page) {
 
   window.scrollTo({ top: 0, behavior: "smooth" });
   window.pairHiCurrentPage = page;
+
+  if (page === "messages" && typeof window.loadPairHiInbox === "function") {
+    window.loadPairHiInbox();
+  }
+
+  if (page === "profile" && typeof window.loadMyProfilePage === "function") {
+    window.loadMyProfilePage();
+  }
 }
 
-function openPairHiSettings() {
-  showPairHiPage("settings");
-}
-
-function closePairHiSettings() {
-  showPairHiPage("home");
+function toggleProfileSettings(id) {
+  const target = document.getElementById(id);
+  if (!target) return;
+  target.hidden = !target.hidden;
 }
 
 (function() {
-  const pages = ["home", "discover", "profile"];
+  const pages = ["home", "discover", "messages", "profile"];
   let startX = 0;
   let startY = 0;
 
   document.addEventListener("touchstart", function(event) {
     if (event.touches.length !== 1) return;
+    if (event.target.closest("input, textarea, select, button, dialog")) return;
+
     startX = event.touches[0].clientX;
     startY = event.touches[0].clientY;
   }, { passive: true });
@@ -581,15 +615,12 @@ window.addEventListener("unhandledrejection", function(event) {
   alert("PAIRHI PROMISE ERROR: " +
     (reason && reason.message ? reason.message : String(reason)));
 });
-
-document.getElementById("year") &&
-  (document.getElementById("year").textContent = new Date().getFullYear());
 </script>
 
 <!-- SUPABASE AND APPLICATION SCRIPTS -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="app.js?v=20261121profile3"></script>
-<script src="discovery.js?v=20261121discovery3"></script>
+<script src="app.js?v=20261122layout1"></script>
+<script src="discovery.js?v=20261122layout1"></script>
 
 </body>
 </html>
