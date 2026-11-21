@@ -15,6 +15,8 @@ const supabaseClient = window.supabase.createClient(
   SUPABASE_KEY
 );
 
+window.supabaseClient = supabaseClient;
+
 const $ = id => document.getElementById(id);
 
 const ALLOWED_GOALS = [
@@ -47,6 +49,17 @@ function goalValue(value) {
     : "marriage";
 }
 
+function goalLabel(value) {
+  const labels = {
+    marriage: "Marriage",
+    serious_relationship: "Long-term Serious Relationship",
+    marriage_oriented_serious_relationship:
+      "Marriage-Oriented Serious Relationship"
+  };
+
+  return labels[value] || "Marriage";
+}
+
 function showMessage(message) {
   const messageBox = $("authMessage");
   if (messageBox) messageBox.textContent = message;
@@ -55,6 +68,16 @@ function showMessage(message) {
 function showProfileMessage(message) {
   const messageBox = $("profileMessage");
   if (messageBox) messageBox.textContent = message;
+}
+
+function escapeHTML(value) {
+  return String(value ?? "").replace(/[&<>"']/g, character => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;"
+  })[character]);
 }
 
 // ======================================
@@ -87,14 +110,22 @@ async function getMyPhotoFiles(userId) {
 
 // ======================================
 // FULL-SCREEN PHOTO VIEWER
+// Supports the viewer in the new HTML
 // ======================================
 
 function openPhotoViewer(imageUrl) {
-  let viewer = $("pairhiPhotoViewer");
+  let viewer =
+    $("photoViewerDialog") ||
+    $("pairhiPhotoViewer");
+
+  let viewerImage =
+    $("photoViewerImage") ||
+    $("pairhiPhotoViewerImage");
 
   if (viewer && !(viewer instanceof HTMLDialogElement)) {
     viewer.remove();
     viewer = null;
+    viewerImage = null;
   }
 
   if (!viewer) {
@@ -102,90 +133,54 @@ function openPhotoViewer(imageUrl) {
     viewer.id = "pairhiPhotoViewer";
 
     viewer.style.cssText =
-      "position:fixed;" +
-      "inset:0;" +
-      "margin:auto;" +
-      "padding:16px;" +
-      "border:0;" +
-      "border-radius:12px;" +
-      "background:#111;" +
-      "color:white;" +
-      "width:calc(100% - 24px);" +
-      "max-width:900px;" +
-      "max-height:92vh;" +
-      "overflow:auto;" +
-      "box-sizing:border-box;";
+      "position:fixed;inset:0;margin:auto;padding:16px;" +
+      "border:0;border-radius:12px;background:#111;color:white;" +
+      "width:calc(100% - 24px);max-width:900px;" +
+      "max-height:92vh;overflow:auto;box-sizing:border-box;";
 
-    if (!$("pairhiPhotoViewerStyle")) {
-      const backdropStyle = document.createElement("style");
-      backdropStyle.id = "pairhiPhotoViewerStyle";
-
-      backdropStyle.textContent =
-        "#pairhiPhotoViewer::backdrop {" +
-        "background:rgba(0,0,0,.94);" +
-        "}";
-
-      document.head.appendChild(backdropStyle);
-    }
+    const style = document.createElement("style");
+    style.textContent =
+      "#pairhiPhotoViewer::backdrop{background:rgba(0,0,0,.94)}";
+    document.head.appendChild(style);
 
     const closeButton = document.createElement("button");
-
     closeButton.type = "button";
     closeButton.textContent = "✕";
     closeButton.setAttribute("aria-label", "Close enlarged photo");
-
     closeButton.style.cssText =
-      "display:block;" +
-      "position:sticky;" +
-      "top:0;" +
-      "margin:0 0 12px auto;" +
-      "width:44px;" +
-      "height:44px;" +
-      "border:0;" +
-      "border-radius:50%;" +
-      "background:white;" +
-      "color:#222;" +
-      "font-size:24px;" +
-      "font-weight:bold;" +
-      "cursor:pointer;" +
-      "z-index:2;";
+      "display:block;position:sticky;top:0;margin:0 0 12px auto;" +
+      "width:44px;height:44px;border:0;border-radius:50%;" +
+      "background:white;color:#222;font-size:24px;font-weight:bold;";
 
-    const image = document.createElement("img");
-
-    image.id = "pairhiPhotoViewerImage";
-    image.alt = "Full size PairHi profile photograph";
-
-    image.style.cssText =
-      "display:block;" +
-      "width:100%;" +
-      "max-width:100%;" +
-      "max-height:78vh;" +
-      "object-fit:contain;" +
-      "border-radius:8px;" +
-      "margin:0 auto;";
+    viewerImage = document.createElement("img");
+    viewerImage.id = "pairhiPhotoViewerImage";
+    viewerImage.alt = "Full size PairHi profile photograph";
+    viewerImage.style.cssText =
+      "display:block;width:100%;max-width:100%;max-height:78vh;" +
+      "object-fit:contain;border-radius:8px;margin:0 auto;";
 
     closeButton.addEventListener("click", () => {
       if (viewer.open) viewer.close();
     });
 
     viewer.addEventListener("click", event => {
-      if (event.target === viewer && viewer.open) {
-        viewer.close();
-      }
+      if (event.target === viewer && viewer.open) viewer.close();
     });
 
     viewer.addEventListener("close", () => {
-      const viewerImage = $("pairhiPhotoViewerImage");
-      if (viewerImage) viewerImage.removeAttribute("src");
+      viewerImage.removeAttribute("src");
     });
 
     viewer.appendChild(closeButton);
-    viewer.appendChild(image);
-
+    viewer.appendChild(viewerImage);
     document.body.appendChild(viewer);
   }
 
-  const viewerImage = $("pairhiPhotoViewerImage");
+  if (!viewerImage) {
+    viewerImage =
+      viewer.querySelector("img") ||
+      $("photoViewerImage");
+  }
 
   if (!viewerImage) {
     throw new Error("Photo viewer image element is missing.");
@@ -193,9 +188,7 @@ function openPhotoViewer(imageUrl) {
 
   viewerImage.src = imageUrl;
 
-  if (!viewer.open) {
-    viewer.showModal();
-  }
+  if (!viewer.open) viewer.showModal();
 }
 
 // ======================================
@@ -205,9 +198,7 @@ function openPhotoViewer(imageUrl) {
 async function setMainProfilePhoto(userId, photoPath) {
   const { data, error } = await supabaseClient
     .from("profiles")
-    .update({
-      photo_url: photoPath
-    })
+    .update({ photo_url: photoPath })
     .eq("id", userId)
     .select("id, photo_url")
     .maybeSingle();
@@ -227,7 +218,7 @@ async function setMainProfilePhoto(userId, photoPath) {
 // DELETE PROFILE PHOTO
 // ======================================
 
-async function deleteMyProfilePhoto(userId, photoPath, currentMainPhoto) {
+async function deleteMyProfilePhoto(userId, photoPath) {
   try {
     const files = await getMyPhotoFiles(userId);
 
@@ -245,28 +236,6 @@ async function deleteMyProfilePhoto(userId, photoPath, currentMainPhoto) {
       );
     }
 
-    if (photoPath === currentMainPhoto) {
-      const replacement = files.find(
-        file => userId + "/" + file.name !== photoPath
-      );
-
-      if (!replacement) {
-        throw new Error("No replacement main photo is available.");
-      }
-
-      const replacementPath = userId + "/" + replacement.name;
-
-      await setMainProfilePhoto(userId, replacementPath);
-    }
-
-    const { error } = await supabaseClient.storage
-      .from("profile-photos")
-      .remove([photoPath]);
-
-    if (error) throw error;
-
-    showProfileMessage("Photograph deleted successfully.");
-
     const { data: profile, error: profileError } =
       await supabaseClient
         .from("profiles")
@@ -276,14 +245,34 @@ async function deleteMyProfilePhoto(userId, photoPath, currentMainPhoto) {
 
     if (profileError) throw profileError;
 
-    await loadMyPhotoGallery(
-      userId,
-      profile.photo_url || ""
-    );
+    let newMainPhoto = profile.photo_url || "";
+
+    if (photoPath === newMainPhoto) {
+      const replacement = files.find(
+        file => userId + "/" + file.name !== photoPath
+      );
+
+      if (!replacement) {
+        throw new Error("No replacement main photo is available.");
+      }
+
+      newMainPhoto = userId + "/" + replacement.name;
+      await setMainProfilePhoto(userId, newMainPhoto);
+    }
+
+    const { error: deleteError } = await supabaseClient.storage
+      .from("profile-photos")
+      .remove([photoPath]);
+
+    if (deleteError) throw deleteError;
+
+    await loadMyPhotoGallery(userId, newMainPhoto);
+    await refreshMyProfileSummary();
+
+    showProfileMessage("Photograph deleted successfully.");
 
   } catch (error) {
     console.error("PAIRHI PHOTO DELETE ERROR:", error);
-
     showProfileMessage(
       "Could not delete photograph: " + error.message
     );
@@ -292,7 +281,6 @@ async function deleteMyProfilePhoto(userId, photoPath, currentMainPhoto) {
 
 // ======================================
 // PRIVATE PROFILE PHOTO GALLERY
-// OPTIMIZED: SIGNED URLS LOAD IN PARALLEL
 // ======================================
 
 async function loadMyPhotoGallery(userId, mainPhotoPath) {
@@ -329,7 +317,6 @@ async function loadMyPhotoGallery(userId, mainPhotoPath) {
       return 0;
     });
 
-    // Request all signed URLs simultaneously.
     const photoResults = await Promise.all(
       photos.map(async photo => {
         try {
@@ -337,26 +324,14 @@ async function loadMyPhotoGallery(userId, mainPhotoPath) {
             .from("profile-photos")
             .createSignedUrl(photo.path, 3600);
 
-          if (error || !data || !data.signedUrl) {
-            console.warn(
-              "Could not create photo viewing link:",
-              photo.path,
-              error
-            );
-            return null;
-          }
+          if (error || !data?.signedUrl) return null;
 
           return {
             ...photo,
             signedUrl: data.signedUrl
           };
-
         } catch (error) {
-          console.warn(
-            "Photo URL request failed:",
-            photo.path,
-            error
-          );
+          console.warn("Photo URL request failed:", photo.path, error);
           return null;
         }
       })
@@ -379,31 +354,26 @@ async function loadMyPhotoGallery(userId, mainPhotoPath) {
 
       item.style.cssText =
         "min-width:0;border:1px solid #eadfe3;" +
-        "border-radius:10px;overflow:hidden;" +
+        "border-radius:12px;overflow:hidden;" +
         "background:#fff;padding:6px;";
 
       const imageButton = document.createElement("button");
-
       imageButton.type = "button";
       imageButton.setAttribute("aria-label", "Open photograph");
-
       imageButton.style.cssText =
         "display:block;width:100%;padding:0;border:0;" +
         "background:transparent;cursor:pointer;";
 
       const image = document.createElement("img");
-
       image.src = photo.signedUrl;
       image.alt = "My uploaded PairHi photograph";
       image.loading = "lazy";
       image.decoding = "async";
-
       image.style.cssText =
         "display:block;width:100%;aspect-ratio:1/1;" +
-        "object-fit:cover;border-radius:7px;";
+        "object-fit:cover;border-radius:8px;";
 
       imageButton.appendChild(image);
-
       imageButton.addEventListener("click", () => {
         try {
           openPhotoViewer(photo.signedUrl);
@@ -417,57 +387,47 @@ async function loadMyPhotoGallery(userId, mainPhotoPath) {
 
       item.appendChild(imageButton);
 
-      const label = document.createElement("div");
-
       const isMainPhoto = photo.path === mainPhotoPath;
 
+      const label = document.createElement("div");
       label.textContent = isMainPhoto
         ? "Main Profile Photo"
         : "Uploaded Photo";
-
       label.style.cssText =
-        "font-size:11px;font-weight:700;" +
-        "color:#8f3658;text-align:center;" +
-        "padding:7px 2px;";
+        "font-size:11px;font-weight:700;color:#8f3658;" +
+        "text-align:center;padding:8px 2px;";
 
       item.appendChild(label);
 
       if (!isMainPhoto) {
         const mainButton = document.createElement("button");
-
         mainButton.type = "button";
         mainButton.textContent = "Make Main Photo";
-
         mainButton.style.cssText =
-          "display:block;width:100%;padding:8px 4px;" +
-          "margin:3px 0;border:0;border-radius:6px;" +
-          "background:#8f3658;color:white;" +
-          "font-size:11px;font-weight:700;cursor:pointer;";
+          "display:block;width:100%;padding:9px 4px;" +
+          "margin:3px 0;border:0;border-radius:7px;" +
+          "background:#c52b68;color:white;font-size:11px;" +
+          "font-weight:700;cursor:pointer;";
 
         mainButton.addEventListener("click", async () => {
-          if (!confirm("Make this your main profile photograph?")) {
-            return;
-          }
+          if (!confirm("Make this your main profile photograph?")) return;
 
           mainButton.disabled = true;
           showProfileMessage("Updating your main photograph...");
 
           try {
             await setMainProfilePhoto(userId, photo.path);
-
             await loadMyPhotoGallery(userId, photo.path);
+            await refreshMyProfileSummary();
 
             showProfileMessage(
               "Your main profile photograph has been changed successfully."
             );
-
           } catch (error) {
             console.error("PAIRHI MAIN PHOTO ERROR:", error);
-
             showProfileMessage(
               "Could not change main photo: " + error.message
             );
-
             mainButton.disabled = false;
           }
         });
@@ -476,16 +436,13 @@ async function loadMyPhotoGallery(userId, mainPhotoPath) {
       }
 
       const deleteButton = document.createElement("button");
-
       deleteButton.type = "button";
       deleteButton.textContent = "Delete Photo";
-
       deleteButton.style.cssText =
-        "display:block;width:100%;padding:8px 4px;" +
+        "display:block;width:100%;padding:9px 4px;" +
         "margin:3px 0;border:1px solid #d9534f;" +
-        "border-radius:6px;background:white;" +
-        "color:#c0392b;font-size:11px;" +
-        "font-weight:700;cursor:pointer;";
+        "border-radius:7px;background:white;color:#c0392b;" +
+        "font-size:11px;font-weight:700;cursor:pointer;";
 
       deleteButton.addEventListener("click", async () => {
         const confirmed = confirm(
@@ -497,18 +454,11 @@ async function loadMyPhotoGallery(userId, mainPhotoPath) {
         if (!confirmed) return;
 
         deleteButton.disabled = true;
-
-        await deleteMyProfilePhoto(
-          userId,
-          photo.path,
-          mainPhotoPath
-        );
-
+        await deleteMyProfilePhoto(userId, photo.path);
         deleteButton.disabled = false;
       });
 
       item.appendChild(deleteButton);
-
       fragment.appendChild(item);
     }
 
@@ -516,8 +466,9 @@ async function loadMyPhotoGallery(userId, mainPhotoPath) {
 
     if (message) {
       message.textContent =
-        "Showing " + availablePhotos.length + " of your uploaded photographs. " +
-        "You can upload up to " + MAX_PROFILE_PHOTOS + " photos.";
+        "Showing " + availablePhotos.length +
+        " of your uploaded photographs. You can upload up to " +
+        MAX_PROFILE_PHOTOS + " photos.";
     }
 
   } catch (error) {
@@ -531,15 +482,13 @@ async function loadMyPhotoGallery(userId, mainPhotoPath) {
 }
 
 // ======================================
-// GET CURRENT SIGNED-IN USER
+// CURRENT SIGNED-IN USER
 // ======================================
 
 async function getCurrentUser() {
-  const { data, error } =
-    await supabaseClient.auth.getSession();
+  const { data, error } = await supabaseClient.auth.getSession();
 
   if (error) throw error;
-
   if (!data.session) return null;
 
   const { data: userData, error: userError } =
@@ -563,7 +512,6 @@ async function ensureUserProfile(user) {
       .maybeSingle();
 
   if (readError) throw readError;
-
   if (existing) return existing;
 
   const metadata = user.user_metadata || {};
@@ -575,10 +523,9 @@ async function ensureUserProfile(user) {
     relationship_goal: goalValue(metadata.relationship_goal)
   };
 
-  const { error: insertError } =
-    await supabaseClient
-      .from("profiles")
-      .insert(profileData);
+  const { error: insertError } = await supabaseClient
+    .from("profiles")
+    .insert(profileData);
 
   if (insertError) throw insertError;
 
@@ -599,16 +546,211 @@ async function ensureUserProfile(user) {
 }
 
 // ======================================
-// CREATE ACCOUNT
+// PROFILE SUMMARY ON MY PROFILE PAGE
+// ======================================
+
+function renderMyProfileSummary(profile) {
+  const container = $("myProfileSummary");
+  if (!container) return;
+
+  container.replaceChildren();
+
+  const wrapper = document.createElement("div");
+  wrapper.style.cssText =
+    "display:flex;align-items:center;gap:14px;flex-wrap:wrap;" +
+    "padding:16px;border-radius:16px;" +
+    "background:linear-gradient(135deg,#fff0f5,#fff8fa);" +
+    "border:1px solid #f4d5e1;";
+
+  const photo = document.createElement("img");
+  photo.alt = "Your PairHi profile photo";
+  photo.style.cssText =
+    "width:84px;height:84px;border-radius:50%;" +
+    "object-fit:cover;border:3px solid white;" +
+    "box-shadow:0 3px 12px rgba(120,30,70,.15);";
+
+  const photoPath = profile.photo_url || "";
+
+  if (photoPath) {
+    supabaseClient.storage
+      .from("profile-photos")
+      .createSignedUrl(photoPath, 3600)
+      .then(({ data, error }) => {
+        if (!error && data?.signedUrl) {
+          photo.src = data.signedUrl;
+        }
+      })
+      .catch(error => {
+        console.warn("Profile summary photo:", error);
+      });
+  }
+
+  const details = document.createElement("div");
+  details.style.cssText = "flex:1;min-width:150px;";
+
+  const name = document.createElement("div");
+  name.textContent = profile.display_name || "PairHi Member";
+  name.style.cssText =
+    "font-size:20px;font-weight:800;color:#702443;";
+
+  const basics = document.createElement("div");
+  const basicParts = [];
+
+  if (profile.age) basicParts.push(String(profile.age));
+  if (profile.city) basicParts.push(profile.city);
+
+  basics.textContent = basicParts.join(" • ");
+  basics.style.cssText =
+    "font-size:13px;color:#765969;margin-top:5px;";
+
+  const goal = document.createElement("div");
+  goal.textContent = goalLabel(profile.relationship_goal);
+  goal.style.cssText =
+    "font-size:12px;font-weight:700;color:#c02d68;margin-top:7px;";
+
+  const status = document.createElement("div");
+  status.textContent =
+    "Profile status: " +
+    (profile.verification_status || "Pending");
+  status.style.cssText =
+    "font-size:11px;color:#77616d;margin-top:6px;";
+
+  details.append(name, basics, goal, status);
+  wrapper.append(photo, details);
+  container.appendChild(wrapper);
+}
+
+// ======================================
+// LOAD MY PROFILE PAGE
+// INLINE PROFILE EDITING — NO EDIT DIALOG
+// ======================================
+
+async function loadMyProfilePage() {
+  try {
+    const user = await getCurrentUser();
+
+    if (!user) {
+      const authDialog = $("profileDialog");
+
+      if (authDialog && !authDialog.open) {
+        authDialog.showModal();
+      }
+
+      showMessage("Please log in to view your PairHi profile.");
+      return;
+    }
+
+    showProfileMessage("Loading your PairHi profile...");
+
+    await ensureUserProfile(user);
+
+    const { data: profile, error } = await supabaseClient
+      .from("profiles")
+      .select("*")
+      .eq("id", user.id)
+      .single();
+
+    if (error) throw error;
+    if (!profile) throw new Error("Your profile record could not be found.");
+
+    renderMyProfileSummary(profile);
+
+    const fields = {
+      profileName: profile.display_name || "",
+      profileAge: profile.age ?? "",
+      profileGender: profile.gender || "",
+      profilePreferredGender: profile.preferred_gender || "",
+      profileCity: profile.city || "",
+      profilePreferredCity: profile.preferred_city || "",
+      profileGoal: goalValue(profile.relationship_goal),
+      profileEducation: profile.education || "",
+      profileOccupation: profile.occupation || "",
+      profileMaritalStatus: profile.marital_status || "",
+      profileInterests: profile.interests || "",
+      profileLifestyle: profile.lifestyle || "",
+      profileMinAge: profile.min_age_preference ?? 18,
+      profileMaxAge: profile.max_age_preference ?? 60,
+      profileBio: profile.bio || ""
+    };
+
+    Object.entries(fields).forEach(([id, value]) => {
+      const field = $(id);
+      if (field) field.value = value;
+    });
+
+    const photoInput = $("profilePhoto");
+    if (photoInput) {
+      photoInput.value = "";
+      photoInput.required = !profile.photo_url;
+    }
+
+    await loadMyPhotoGallery(user.id, profile.photo_url || "");
+
+    if (profile.verification_status === "approved") {
+      showProfileMessage(
+        "Your profile is approved. You can update your details here."
+      );
+    } else {
+      showProfileMessage(
+        "Verification status: " +
+        (profile.verification_status || "pending") +
+        ". Complete your profile and submit it for review."
+      );
+    }
+
+  } catch (error) {
+    console.error("PAIRHI PROFILE PAGE ERROR:", error);
+
+    showProfileMessage(
+      "Could not load your profile: " + error.message
+    );
+  }
+}
+
+window.loadMyProfilePage = loadMyProfilePage;
+
+async function refreshMyProfileSummary() {
+  try {
+    const user = await getCurrentUser();
+    if (!user) return;
+
+    const { data, error } = await supabaseClient
+      .from("profiles")
+      .select("*")
+      .eq("id", user.id)
+      .single();
+
+    if (error) throw error;
+    if (data) renderMyProfileSummary(data);
+
+  } catch (error) {
+    console.warn("Could not refresh profile summary:", error);
+  }
+}
+
+// Keep the previous public function name working.
+// It now opens the inline My Profile page instead of a dialog.
+async function openMemberProfile() {
+  if (typeof window.showPairHiPage === "function") {
+    window.showPairHiPage("profile");
+  }
+
+  await loadMyProfilePage();
+}
+
+window.openMemberProfile = openMemberProfile;
+
+// ======================================
+// AUTHENTICATION DIALOG
 // ======================================
 
 if ($("signupBtn")) {
   $("signupBtn").addEventListener("click", async () => {
-    const name = $("authName").value.trim();
-    const city = $("authCity").value.trim();
-    const goal = $("authGoal").value;
-    const email = $("authEmail").value.trim();
-    const password = $("authPassword").value;
+    const name = $("authName")?.value.trim() || "";
+    const city = $("authCity")?.value.trim() || "";
+    const goal = $("authGoal")?.value || "";
+    const email = $("authEmail")?.value.trim() || "";
+    const password = $("authPassword")?.value || "";
 
     if (!name || !city || !email || !password) {
       showMessage("Please complete all fields.");
@@ -629,33 +771,40 @@ if ($("signupBtn")) {
       $("signupBtn").disabled = true;
       showMessage("Creating your PairHi account...");
 
-      const { data, error } =
-        await supabaseClient.auth.signUp({
-          email,
-          password,
-          options: {
-            emailRedirectTo:
-              "https://akshay011289-cell.github.io/pairhi-demo/",
-            data: {
-              display_name: name,
-              city: city,
-              relationship_goal: goal
-            }
+      const { data, error } = await supabaseClient.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo:
+            "https://akshay011289-cell.github.io/pairhi-demo/",
+          data: {
+            display_name: name,
+            city,
+            relationship_goal: goal
           }
-        });
+        }
+      });
 
       if (error) throw error;
 
       if (data.session && data.user) {
         await ensureUserProfile(data.user);
 
-        if ($("logoutBtn")) {
-          $("logoutBtn").hidden = false;
-        }
+        if ($("logoutBtn")) $("logoutBtn").hidden = false;
 
         showMessage(
           "Account created successfully! Your PairHi profile is saved."
         );
+
+        if (typeof window.showPairHiPage === "function") {
+          window.showPairHiPage("profile");
+        }
+
+        await loadMyProfilePage();
+
+        const authDialog = $("profileDialog");
+        if (authDialog?.open) authDialog.close();
+
       } else {
         showMessage(
           "Registration successful! Please verify your email and then log in."
@@ -678,8 +827,8 @@ if ($("signupBtn")) {
 
 if ($("loginBtn")) {
   $("loginBtn").addEventListener("click", async () => {
-    const email = $("authEmail").value.trim();
-    const password = $("authPassword").value;
+    const email = $("authEmail")?.value.trim() || "";
+    const password = $("authPassword")?.value || "";
 
     if (!email || !password) {
       showMessage("Enter your email and password.");
@@ -690,26 +839,37 @@ if ($("loginBtn")) {
       $("loginBtn").disabled = true;
       showMessage("Logging in to PairHi...");
 
-      const { data, error } =
-        await supabaseClient.auth.signInWithPassword({
-          email,
-          password
-        });
+      const { data, error } = await supabaseClient.auth
+        .signInWithPassword({ email, password });
 
       if (error) throw error;
 
-      const savedProfile =
-        await ensureUserProfile(data.user);
+      const savedProfile = await ensureUserProfile(data.user);
 
-      if ($("logoutBtn")) {
-        $("logoutBtn").hidden = false;
-      }
+      if ($("logoutBtn")) $("logoutBtn").hidden = false;
 
       showMessage(
         "Welcome to PairHi, " +
         savedProfile.display_name +
         "! Your profile is connected."
       );
+
+      const authDialog = $("profileDialog");
+      if (authDialog?.open) authDialog.close();
+
+      if (typeof window.showPairHiPage === "function") {
+        window.showPairHiPage("home");
+      }
+
+      await loadMyProfilePage();
+
+      if (typeof window.loadPairHiInbox === "function") {
+        window.loadPairHiInbox();
+      }
+
+      if (typeof window.loadDiscovery === "function") {
+        window.loadDiscovery();
+      }
 
     } catch (error) {
       showMessage("Login error: " + error.message);
@@ -728,18 +888,31 @@ if ($("loginBtn")) {
 if ($("logoutBtn")) {
   $("logoutBtn").addEventListener("click", async () => {
     try {
-      const { error } =
-        await supabaseClient.auth.signOut();
+      $("logoutBtn").disabled = true;
 
+      const { error } = await supabaseClient.auth.signOut();
       if (error) throw error;
 
       $("logoutBtn").hidden = true;
 
+      const gallery = $("myPhotoGallery");
+      if (gallery) gallery.replaceChildren();
+
+      const summary = $("myProfileSummary");
+      if (summary) summary.textContent = "Log in to view your profile.";
+
       showMessage("You have logged out successfully.");
+
+      if (typeof window.showPairHiPage === "function") {
+        window.showPairHiPage("home");
+      }
 
     } catch (error) {
       showMessage("Logout error: " + error.message);
-      console.error(error);
+      console.error("PAIRHI LOGOUT ERROR:", error);
+
+    } finally {
+      $("logoutBtn").disabled = false;
     }
   });
 }
@@ -750,18 +923,13 @@ if ($("logoutBtn")) {
 
 async function checkExistingLogin() {
   try {
-    const { data, error } =
-      await supabaseClient.auth.getSession();
-
+    const { data, error } = await supabaseClient.auth.getSession();
     if (error) throw error;
 
     if (data.session) {
-      if ($("logoutBtn")) {
-        $("logoutBtn").hidden = false;
-      }
+      if ($("logoutBtn")) $("logoutBtn").hidden = false;
 
-      const savedProfile =
-        await ensureUserProfile(data.session.user);
+      const savedProfile = await ensureUserProfile(data.session.user);
 
       showMessage(
         "Welcome back, " +
@@ -769,132 +937,20 @@ async function checkExistingLogin() {
         "! Your profile is connected."
       );
 
+      await loadMyProfilePage();
+
     } else {
-      if ($("logoutBtn")) {
-        $("logoutBtn").hidden = true;
-      }
+      if ($("logoutBtn")) $("logoutBtn").hidden = true;
     }
 
   } catch (error) {
     showMessage("Session error: " + error.message);
-    console.error(error);
+    console.error("PAIRHI SESSION ERROR:", error);
   }
 }
 
 // ======================================
-// OPEN MEMBER PROFILE EDITOR
-// ======================================
-
-async function openMemberProfile() {
-  try {
-    const editor = $("editProfileDialog");
-
-    if (!editor) {
-      throw new Error(
-        "The editProfileDialog element is missing from index.html."
-      );
-    }
-
-    const user = await getCurrentUser();
-
-    if (!user) {
-      const authDialog = $("profileDialog");
-
-      if (authDialog && !authDialog.open) {
-        authDialog.showModal();
-      }
-
-      showMessage("Please log in to edit your PairHi profile.");
-      return;
-    }
-
-    showProfileMessage("Loading your PairHi profile...");
-
-    await ensureUserProfile(user);
-
-    const { data: profile, error } =
-      await supabaseClient
-        .from("profiles")
-        .select("*")
-        .eq("id", user.id)
-        .single();
-
-    if (error) throw error;
-
-    if (!profile) {
-      throw new Error("Your profile record could not be found.");
-    }
-
-    $("profileName").value = profile.display_name || "";
-    $("profileAge").value = profile.age ?? "";
-    $("profileGender").value = profile.gender || "";
-    $("profilePreferredGender").value =
-      profile.preferred_gender || "";
-    $("profileCity").value = profile.city || "";
-    $("profilePreferredCity").value =
-      profile.preferred_city || "";
-
-    $("profileGoal").value =
-      ALLOWED_GOALS.includes(profile.relationship_goal)
-        ? profile.relationship_goal
-        : "marriage";
-
-    $("profileEducation").value = profile.education || "";
-    $("profileOccupation").value = profile.occupation || "";
-    $("profileMaritalStatus").value =
-      profile.marital_status || "";
-    $("profileInterests").value = profile.interests || "";
-    $("profileLifestyle").value = profile.lifestyle || "";
-
-    $("profileMinAge").value =
-      profile.min_age_preference ?? 18;
-
-    $("profileMaxAge").value =
-      profile.max_age_preference ?? 60;
-
-    $("profileBio").value = profile.bio || "";
-
-    $("profilePhoto").value = "";
-    $("profilePhoto").required = !profile.photo_url;
-
-    await loadMyPhotoGallery(
-      user.id,
-      profile.photo_url || ""
-    );
-
-    if (profile.verification_status === "approved") {
-      showProfileMessage(
-        "Your profile is approved. You can update your details here."
-      );
-    } else {
-      showProfileMessage(
-        "Verification status: " +
-        (profile.verification_status || "pending") +
-        ". Complete your profile and submit it for review."
-      );
-    }
-
-    if (!editor.open) {
-      editor.showModal();
-    }
-
-  } catch (error) {
-    console.error("PAIRHI PROFILE ERROR:", error);
-
-    showProfileMessage(
-      "Could not open your profile: " + error.message
-    );
-
-    alert(
-      "PAIRHI PROFILE ERROR:\n" + error.message
-    );
-  }
-}
-
-window.openMemberProfile = openMemberProfile;
-
-// ======================================
-// SAVE MEMBER PROFILE AND PHOTO
+// SAVE PROFILE — INLINE FORM
 // ======================================
 
 if ($("editProfileForm")) {
@@ -904,7 +960,7 @@ if ($("editProfileForm")) {
     const saveButton = $("saveProfileBtn");
 
     try {
-      saveButton.disabled = true;
+      if (saveButton) saveButton.disabled = true;
 
       showProfileMessage("Saving your PairHi profile...");
 
@@ -916,41 +972,35 @@ if ($("editProfileForm")) {
         );
       }
 
-      const name = $("profileName").value.trim();
-      const age = Number($("profileAge").value);
-      const gender = $("profileGender").value;
+      const name = $("profileName")?.value.trim() || "";
+      const age = Number($("profileAge")?.value);
+      const gender = $("profileGender")?.value || "";
       const preferredGender =
-        $("profilePreferredGender").value;
-      const city = $("profileCity").value.trim();
+        $("profilePreferredGender")?.value || "";
+      const city = $("profileCity")?.value.trim() || "";
       const preferredCity =
-        $("profilePreferredCity").value.trim();
-      const goal = $("profileGoal").value;
-      const minAge = Number($("profileMinAge").value);
-      const maxAge = Number($("profileMaxAge").value);
-      const bio = $("profileBio").value.trim();
+        $("profilePreferredCity")?.value.trim() || "";
+      const goal = $("profileGoal")?.value || "";
+      const minAge = Number($("profileMinAge")?.value);
+      const maxAge = Number($("profileMaxAge")?.value);
+      const bio = $("profileBio")?.value.trim() || "";
 
       const education =
-        $("profileEducation").value.trim();
+        $("profileEducation")?.value.trim() || "";
       const occupation =
-        $("profileOccupation").value.trim();
+        $("profileOccupation")?.value.trim() || "";
       const maritalStatus =
-        $("profileMaritalStatus").value;
+        $("profileMaritalStatus")?.value || "";
       const interests =
-        $("profileInterests").value.trim();
+        $("profileInterests")?.value.trim() || "";
       const lifestyle =
-        $("profileLifestyle").value.trim();
+        $("profileLifestyle")?.value.trim() || "";
 
       const photoInput = $("profilePhoto");
       const photoFile =
-        photoInput.files && photoInput.files[0];
+        photoInput?.files && photoInput.files[0];
 
-      if (
-        !name ||
-        !city ||
-        !bio ||
-        !gender ||
-        !preferredGender
-      ) {
+      if (!name || !city || !bio || !gender || !preferredGender) {
         throw new Error(
           "Please complete all required profile fields."
         );
@@ -975,9 +1025,7 @@ if ($("editProfileForm")) {
         maxAge > 100 ||
         minAge > maxAge
       ) {
-        throw new Error(
-          "Please check your preferred age range."
-        );
+        throw new Error("Please check your preferred age range.");
       }
 
       if (education.length > 150 || occupation.length > 150) {
@@ -1000,15 +1048,11 @@ if ($("editProfileForm")) {
         ];
 
         if (!allowedTypes.includes(photoFile.type)) {
-          throw new Error(
-            "Please upload a JPG, PNG or WEBP photograph."
-          );
+          throw new Error("Please upload a JPG, PNG or WEBP photograph.");
         }
 
         if (photoFile.size > 5 * 1024 * 1024) {
-          throw new Error(
-            "Your photograph must be smaller than 5 MB."
-          );
+          throw new Error("Your photograph must be smaller than 5 MB.");
         }
       }
 
@@ -1021,8 +1065,7 @@ if ($("editProfileForm")) {
 
       if (existingError) throw existingError;
 
-      let photoPath =
-        existingProfile.photo_url || "";
+      let photoPath = existingProfile.photo_url || "";
 
       if (photoFile) {
         const existingPhotos = await getMyPhotoFiles(user.id);
@@ -1042,23 +1085,22 @@ if ($("editProfileForm")) {
 
         showProfileMessage("Uploading your photograph...");
 
-        const { error: uploadError } =
-          await supabaseClient.storage
-            .from("profile-photos")
-            .upload(photoPath, photoFile, {
-              upsert: false,
-              contentType: photoFile.type
-            });
+        const { error: uploadError } = await supabaseClient.storage
+          .from("profile-photos")
+          .upload(photoPath, photoFile, {
+            upsert: false,
+            contentType: photoFile.type
+          });
 
         if (uploadError) throw uploadError;
       }
 
       const profileData = {
         display_name: name,
-        age: age,
-        gender: gender,
+        age,
+        gender,
         preferred_gender: preferredGender,
-        city: city,
+        city,
         preferred_city: preferredCity || null,
         relationship_goal: goal,
         education: education || null,
@@ -1068,7 +1110,7 @@ if ($("editProfileForm")) {
         lifestyle: lifestyle || null,
         min_age_preference: minAge,
         max_age_preference: maxAge,
-        bio: bio,
+        bio,
         photo_url: photoPath
       };
 
@@ -1092,38 +1134,62 @@ if ($("editProfileForm")) {
 
       console.log("PAIRHI SAVED PROFILE:", updatedProfile);
 
-      photoInput.value = "";
-      photoInput.required = false;
+      if (photoInput) {
+        photoInput.value = "";
+        photoInput.required = false;
+      }
 
       await loadMyPhotoGallery(user.id, photoPath);
+      await refreshMyProfileSummary();
 
       showProfileMessage(
-        "Your profile has been saved successfully. Your photo gallery has been refreshed."
+        "Your profile has been saved successfully."
       );
-
-      setTimeout(() => {
-        const editor = $("editProfileDialog");
-
-        if (editor && editor.open) {
-          editor.close();
-        }
-      }, 1800);
 
     } catch (error) {
       showProfileMessage(
         "Profile saving error: " + error.message
       );
 
-      console.error(
-        "PairHi profile saving error:",
-        error
-      );
+      console.error("PAIRHI PROFILE SAVE ERROR:", error);
 
     } finally {
-      saveButton.disabled = false;
+      if (saveButton) saveButton.disabled = false;
     }
   });
 }
+
+// ======================================
+// AUTH STATE CHANGES
+// ======================================
+
+supabaseClient.auth.onAuthStateChange((event, session) => {
+  if (event === "SIGNED_IN" && session?.user) {
+    if ($("logoutBtn")) $("logoutBtn").hidden = false;
+
+    // Defer Supabase queries until after the auth event callback.
+    setTimeout(async () => {
+      try {
+        await ensureUserProfile(session.user);
+        await loadMyProfilePage();
+
+        if (typeof window.loadDiscovery === "function") {
+          await window.loadDiscovery();
+        }
+
+        if (typeof window.loadPairHiInbox === "function") {
+          await window.loadPairHiInbox();
+        }
+      } catch (error) {
+        console.error("PAIRHI SIGN-IN REFRESH ERROR:", error);
+      }
+    }, 0);
+  }
+
+  if (event === "SIGNED_OUT") {
+    if ($("logoutBtn")) $("logoutBtn").hidden = true;
+  }
+});
 
 // ======================================
 // FOOTER YEAR
