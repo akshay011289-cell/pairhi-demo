@@ -702,7 +702,19 @@
           placeholder="Tell people about your personality, interests, values and what you are looking for."
         ></textarea>
       </div>
+<div class="form-field">
+  <label>My uploaded photographs</label>
 
+  <div id="myPhotoGallery"
+       style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;">
+  </div>
+
+  <div id="photoGalleryMessage"
+       class="form-help"
+       role="status">
+    Your uploaded photographs will appear here.
+  </div>
+</div>
       <div class="form-field">
         <label for="profilePhoto">Profile photograph *</label>
         <input
