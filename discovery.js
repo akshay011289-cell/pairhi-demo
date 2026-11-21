@@ -1,3 +1,4 @@
+
 /* =====================================================
    PAIRHI DISCOVERY, MUTUAL MATCHES, PROFILES AND CHAT
    Uses the existing Supabase database and RLS policies.
@@ -39,20 +40,28 @@ function compatibleGender(preference, gender) {
   return preference === "any" || preference === gender;
 }
 
+/* =====================================================
+   RELATIONSHIP GOALS
+===================================================== */
+
 function goalDatabaseValue(value) {
-  if (value === "Marriage") return "marriage";
+  const allowedGoals = [
+    "marriage",
+    "serious_relationship",
+    "marriage_oriented_serious_relationship"
+  ];
 
-  if (value === "Long-term relationship") {
-    return "serious_relationship";
-  }
+  if (!value || value === "all") return null;
 
-  return null;
+  return allowedGoals.includes(value) ? value : null;
 }
 
 function relationshipGoalLabel(value) {
   const labels = {
     marriage: "Marriage",
-    serious_relationship: "Serious relationship"
+    serious_relationship: "Long-term Serious Relationship",
+    marriage_oriented_serious_relationship:
+      "Marriage-Oriented Serious Relationship"
   };
 
   return labels[value] || "Not specified";
@@ -72,7 +81,6 @@ function addPairHiDialogStyles() {
   const style = document.createElement("style");
   style.id = "pairhiDialogStyles";
 
-  /* FIXED: CSS is correctly enclosed in a template string. */
   style.textContent = `
     .pairhi-dialog {
       width:min(94%,560px);
@@ -417,11 +425,18 @@ async function openMatchedProfile(matchId) {
   addProfileDetail(content, "Name and age", name);
   addProfileDetail(content, "City", member.city);
   addProfileDetail(content, "Gender", member.gender);
+
   addProfileDetail(
     content,
     "Relationship goal",
     relationshipGoalLabel(member.relationship_goal)
   );
+
+  addProfileDetail(content, "Education", member.education);
+  addProfileDetail(content, "Occupation", member.occupation);
+  addProfileDetail(content, "Marital status", member.marital_status);
+  addProfileDetail(content, "Interests", member.interests);
+  addProfileDetail(content, "Lifestyle", member.lifestyle);
   addProfileDetail(content, "About", member.bio);
 
   const actions = document.createElement("div");
@@ -646,11 +661,6 @@ async function openPairHiChat(matchId) {
   try {
     await loadPairHiMessages(matchId);
 
-    /*
-      Live updates are supported by the existing messages
-      Realtime publication, if enabled in Supabase.
-    */
-
     activeChatChannel = supabaseClient
       .channel("pairhi-chat-" + matchId)
       .on(
@@ -702,8 +712,10 @@ async function sendPairHiMessage(event) {
   if (!content) return;
 
   if (content.length > 2000) {
-    if (status) status.textContent =
-      "Please keep your message under 2,000 characters.";
+    if (status) {
+      status.textContent =
+        "Please keep your message under 2,000 characters.";
+    }
     return;
   }
 
@@ -716,12 +728,6 @@ async function sendPairHiMessage(event) {
   if (status) status.textContent = "Sending message...";
 
   try {
-    /*
-      The database policy checks:
-      1. sender_id equals auth.uid()
-      2. sender is a participant in this match.
-    */
-
     const { error } = await supabaseClient
       .from("messages")
       .insert({
@@ -864,28 +870,13 @@ function showMatchSection(profiles) {
     actions.className = "pairhi-match-actions";
 
     actions.append(
-      createMatchButton(
-        "View profile",
-        "profile",
-        matchId,
-        false
-      ),
-      createMatchButton(
-        "Message",
-        "chat",
-        matchId,
-        true
-      )
+      createMatchButton("View profile", "profile", matchId, false),
+      createMatchButton("Message", "chat", matchId, true)
     );
 
     details.append(name, city, actions);
     card.append(avatar, details);
     section.appendChild(card);
-
-    /*
-      Private photo is loaded using a signed URL.
-      The profile bucket remains private.
-    */
 
     if (member.photo_url) {
       supabaseClient.storage
@@ -1099,7 +1090,8 @@ async function loadDiscovery() {
         .select(
           "id,display_name,age,gender,preferred_gender," +
           "min_age_preference,max_age_preference,city," +
-          "bio,relationship_goal,photo_url"
+          "bio,relationship_goal,photo_url," +
+          "education,occupation,marital_status,interests,lifestyle"
         )
         .eq("verification_status", "approved")
         .neq("id", user.id);
@@ -1130,8 +1122,10 @@ async function loadDiscovery() {
       (passes || []).map(item => item.passed_user_id)
     );
 
-    const selectedGoal = discovery$("intentFilter")
-      ? goalDatabaseValue(discovery$("intentFilter").value)
+    const intentFilter = discovery$("intentFilter");
+
+    const selectedGoal = intentFilter
+      ? goalDatabaseValue(intentFilter.value)
       : null;
 
     const targetCity = normalizeCity(cityToUse);
@@ -1257,28 +1251,47 @@ async function renderRealCandidate() {
 
   showDiscoveryCard();
 
-  discovery$("personName").textContent =
-    (member.display_name || "PairHi Member") +
-    ", " + member.age;
+  const personName = discovery$("personName");
+  const personLocation = discovery$("personLocation");
+  const personIntent = discovery$("personIntent");
+  const personBio = discovery$("personBio");
+  const personTags = discovery$("personTags");
+  const compatScore = discovery$("compatScore");
+  const photoNumber = discovery$("photoNumber");
 
-  discovery$("personLocation").textContent =
-    (member.city || "") + " · India";
+  if (personName) {
+    personName.textContent =
+      (member.display_name || "PairHi Member") +
+      ", " + member.age;
+  }
 
-  discovery$("personIntent").textContent =
-    relationshipGoalLabel(member.relationship_goal);
+  if (personLocation) {
+    personLocation.textContent =
+      (member.city || "") + " · India";
+  }
 
-  discovery$("personBio").textContent =
-    member.bio || "This member has not added a bio yet.";
+  if (personIntent) {
+    personIntent.textContent =
+      relationshipGoalLabel(member.relationship_goal);
+  }
 
-  discovery$("personTags").replaceChildren();
+  if (personBio) {
+    personBio.textContent =
+      member.bio || "This member has not added a bio yet.";
+  }
 
-  discovery$("compatScore").textContent =
-    "Preferences compatible";
+  if (personTags) personTags.replaceChildren();
 
-  discovery$("photoNumber").textContent =
-    (discoveryIndex + 1) +
-    " / " +
-    discoveryCandidates.length;
+  if (compatScore) {
+    compatScore.textContent = "Preferences compatible";
+  }
+
+  if (photoNumber) {
+    photoNumber.textContent =
+      (discoveryIndex + 1) +
+      " / " +
+      discoveryCandidates.length;
+  }
 
   const badge = photo.querySelector(".verified");
 
@@ -1310,8 +1323,7 @@ async function renderRealCandidate() {
 
         if (badge) badge.style.zIndex = "2";
 
-        const number = discovery$("photoNumber");
-        if (number) number.style.zIndex = "2";
+        if (photoNumber) photoNumber.style.zIndex = "2";
 
         photo.appendChild(image);
       }
