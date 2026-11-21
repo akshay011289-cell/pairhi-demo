@@ -1281,6 +1281,190 @@ async function loadMyMatches(userId) {
 }
 
 /* =====================================================
+   PAIRHI MESSAGES INBOX
+   Uses existing matches and messages tables.
+===================================================== */
+
+async function loadPairHiInbox() {
+  const inbox = discovery$("messagesInbox");
+
+  if (!inbox) {
+    console.warn("PairHi: messagesInbox container not found.");
+    return;
+  }
+
+  inbox.replaceChildren();
+
+  const heading = document.createElement("h2");
+  heading.textContent = "Your conversations";
+
+  const intro = document.createElement("p");
+  intro.textContent =
+    "Your private conversations with mutual matches.";
+
+  inbox.append(heading, intro);
+
+  try {
+    const { data: sessionData, error: sessionError } =
+      await supabaseClient.auth.getSession();
+
+    if (sessionError) throw sessionError;
+
+    if (!sessionData.session) {
+      const empty = document.createElement("p");
+      empty.textContent = "Please log in to view your messages.";
+      inbox.appendChild(empty);
+      return;
+    }
+
+    discoveryUser = sessionData.session.user;
+
+    const matches = await loadMyMatches(discoveryUser.id);
+
+    if (!matches || matches.length === 0) {
+      const empty = document.createElement("div");
+      empty.className = "pairhi-inbox-empty";
+      empty.textContent =
+        "No mutual matches yet. When you match with someone, your conversations will appear here.";
+
+      inbox.appendChild(empty);
+      return;
+    }
+
+    const matchIds = matches.map(match => match.id);
+
+    const { data: messageRows, error: messagesError } =
+      await supabaseClient
+        .from("messages")
+        .select("id,match_id,sender_id,content,created_at")
+        .in("match_id", matchIds)
+        .order("created_at", { ascending: false });
+
+    if (messagesError) throw messagesError;
+
+    const latestMessages = new Map();
+
+    (messageRows || []).forEach(message => {
+      if (!latestMessages.has(message.match_id)) {
+        latestMessages.set(message.match_id, message);
+      }
+    });
+
+    const list = document.createElement("div");
+    list.className = "pairhi-inbox-list";
+
+    const conversations = [];
+
+    matches.forEach(match => {
+      const record = discoveryMatchRecords.get(match.id);
+
+      if (!record || !record.profile) return;
+
+      conversations.push({
+        matchId: match.id,
+        profile: record.profile,
+        message: latestMessages.get(match.id) || null,
+        createdAt:
+          latestMessages.get(match.id)?.created_at ||
+          match.created_at
+      });
+    });
+
+    conversations.sort((a, b) => {
+      return new Date(b.createdAt || 0) -
+        new Date(a.createdAt || 0);
+    });
+
+    if (conversations.length === 0) {
+      const empty = document.createElement("p");
+      empty.textContent = "No conversations are available.";
+      inbox.appendChild(empty);
+      return;
+    }
+
+    conversations.forEach(conversation => {
+      const profile = conversation.profile;
+      const message = conversation.message;
+
+      const card = document.createElement("button");
+      card.type = "button";
+      card.className = "pairhi-inbox-card";
+      card.dataset.matchId = conversation.matchId;
+
+      const avatar = document.createElement("div");
+      avatar.className = "pairhi-inbox-avatar";
+      avatar.textContent =
+        safeText(profile.display_name, "P")
+          .charAt(0)
+          .toUpperCase();
+
+      const details = document.createElement("div");
+      details.className = "pairhi-inbox-details";
+
+      const name = document.createElement("strong");
+      name.textContent =
+        safeText(profile.display_name, "PairHi Member") +
+        (profile.age ? ", " + profile.age : "");
+
+      const preview = document.createElement("span");
+
+      if (!message) {
+        preview.textContent = "Start your conversation";
+      } else {
+        preview.textContent =
+          (message.sender_id === discoveryUser.id ? "You: " : "") +
+          safeText(message.content, "Message");
+      }
+
+      const time = document.createElement("small");
+      time.textContent = message
+        ? formatMessageTime(message.created_at)
+        : formatMessageTime(conversation.createdAt);
+
+      details.append(name, preview, time);
+      card.append(avatar, details);
+      list.appendChild(card);
+
+      if (profile.photo_url) {
+        supabaseClient.storage
+          .from("profile-photos")
+          .createSignedUrl(profile.photo_url, 3600)
+          .then(({ data, error }) => {
+            if (!error && data?.signedUrl) {
+              const image = document.createElement("img");
+              image.className = "pairhi-inbox-avatar";
+              image.src = data.signedUrl;
+              image.alt = "Profile photo";
+              image.loading = "lazy";
+              avatar.replaceWith(image);
+            }
+          })
+          .catch(error => {
+            console.warn("Inbox photo error:", error);
+          });
+      }
+
+      card.addEventListener("click", () => {
+        openPairHiChat(conversation.matchId);
+      });
+    });
+
+    inbox.appendChild(list);
+
+  } catch (error) {
+    console.error("PairHi inbox error:", error);
+
+    const errorMessage = document.createElement("p");
+    errorMessage.textContent =
+      "Could not load your messages: " + error.message;
+
+    inbox.appendChild(errorMessage);
+  }
+}
+
+window.loadPairHiInbox = loadPairHiInbox;
+
+/* =====================================================
    LOAD DISCOVERY
 ===================================================== */
 
