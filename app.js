@@ -92,7 +92,6 @@ async function getMyPhotoFiles(userId) {
 function openPhotoViewer(imageUrl) {
   let viewer = $("pairhiPhotoViewer");
 
-  // Replace any old non-dialog viewer.
   if (viewer && !(viewer instanceof HTMLDialogElement)) {
     viewer.remove();
     viewer = null;
@@ -117,15 +116,15 @@ function openPhotoViewer(imageUrl) {
       "overflow:auto;" +
       "box-sizing:border-box;";
 
-    const backdropStyle = document.createElement("style");
-    backdropStyle.id = "pairhiPhotoViewerStyle";
-
-    backdropStyle.textContent =
-      "#pairhiPhotoViewer::backdrop {" +
-      "background:rgba(0,0,0,.94);" +
-      "}";
-
     if (!$("pairhiPhotoViewerStyle")) {
+      const backdropStyle = document.createElement("style");
+      backdropStyle.id = "pairhiPhotoViewerStyle";
+
+      backdropStyle.textContent =
+        "#pairhiPhotoViewer::backdrop {" +
+        "background:rgba(0,0,0,.94);" +
+        "}";
+
       document.head.appendChild(backdropStyle);
     }
 
@@ -194,7 +193,6 @@ function openPhotoViewer(imageUrl) {
 
   viewerImage.src = imageUrl;
 
-  // showModal() places this dialog above the existing profile dialog.
   if (!viewer.open) {
     viewer.showModal();
   }
@@ -247,7 +245,6 @@ async function deleteMyProfilePhoto(userId, photoPath, currentMainPhoto) {
       );
     }
 
-    // If deleting the main photo, change it first.
     if (photoPath === currentMainPhoto) {
       const replacement = files.find(
         file => userId + "/" + file.name !== photoPath
@@ -257,8 +254,7 @@ async function deleteMyProfilePhoto(userId, photoPath, currentMainPhoto) {
         throw new Error("No replacement main photo is available.");
       }
 
-      const replacementPath =
-        userId + "/" + replacement.name;
+      const replacementPath = userId + "/" + replacement.name;
 
       await setMainProfilePhoto(userId, replacementPath);
     }
@@ -296,6 +292,7 @@ async function deleteMyProfilePhoto(userId, photoPath, currentMainPhoto) {
 
 // ======================================
 // PRIVATE PROFILE PHOTO GALLERY
+// OPTIMIZED: SIGNED URLS LOAD IN PARALLEL
 // ======================================
 
 async function loadMyPhotoGallery(userId, mainPhotoPath) {
@@ -332,22 +329,52 @@ async function loadMyPhotoGallery(userId, mainPhotoPath) {
       return 0;
     });
 
-    let displayedCount = 0;
+    // Request all signed URLs simultaneously.
+    const photoResults = await Promise.all(
+      photos.map(async photo => {
+        try {
+          const { data, error } = await supabaseClient.storage
+            .from("profile-photos")
+            .createSignedUrl(photo.path, 3600);
 
-    for (const photo of photos) {
-      const { data, error } = await supabaseClient.storage
-        .from("profile-photos")
-        .createSignedUrl(photo.path, 3600);
+          if (error || !data || !data.signedUrl) {
+            console.warn(
+              "Could not create photo viewing link:",
+              photo.path,
+              error
+            );
+            return null;
+          }
 
-      if (error || !data || !data.signedUrl) {
-        console.warn(
-          "Could not create photo viewing link:",
-          photo.path,
-          error
-        );
-        continue;
+          return {
+            ...photo,
+            signedUrl: data.signedUrl
+          };
+
+        } catch (error) {
+          console.warn(
+            "Photo URL request failed:",
+            photo.path,
+            error
+          );
+          return null;
+        }
+      })
+    );
+
+    const availablePhotos = photoResults.filter(Boolean);
+
+    if (availablePhotos.length === 0) {
+      if (message) {
+        message.textContent =
+          "Your photographs could not be loaded. Please try again.";
       }
+      return;
+    }
 
+    const fragment = document.createDocumentFragment();
+
+    for (const photo of availablePhotos) {
       const item = document.createElement("div");
 
       item.style.cssText =
@@ -355,7 +382,6 @@ async function loadMyPhotoGallery(userId, mainPhotoPath) {
         "border-radius:10px;overflow:hidden;" +
         "background:#fff;padding:6px;";
 
-      // Photo thumbnail button.
       const imageButton = document.createElement("button");
 
       imageButton.type = "button";
@@ -367,9 +393,10 @@ async function loadMyPhotoGallery(userId, mainPhotoPath) {
 
       const image = document.createElement("img");
 
-      image.src = data.signedUrl;
+      image.src = photo.signedUrl;
       image.alt = "My uploaded PairHi photograph";
       image.loading = "lazy";
+      image.decoding = "async";
 
       image.style.cssText =
         "display:block;width:100%;aspect-ratio:1/1;" +
@@ -379,7 +406,7 @@ async function loadMyPhotoGallery(userId, mainPhotoPath) {
 
       imageButton.addEventListener("click", () => {
         try {
-          openPhotoViewer(data.signedUrl);
+          openPhotoViewer(photo.signedUrl);
         } catch (error) {
           console.error("PAIRHI PHOTO VIEWER ERROR:", error);
           showProfileMessage(
@@ -390,7 +417,6 @@ async function loadMyPhotoGallery(userId, mainPhotoPath) {
 
       item.appendChild(imageButton);
 
-      // Photo label.
       const label = document.createElement("div");
 
       const isMainPhoto = photo.path === mainPhotoPath;
@@ -406,7 +432,6 @@ async function loadMyPhotoGallery(userId, mainPhotoPath) {
 
       item.appendChild(label);
 
-      // Make Main Photo button.
       if (!isMainPhoto) {
         const mainButton = document.createElement("button");
 
@@ -450,7 +475,6 @@ async function loadMyPhotoGallery(userId, mainPhotoPath) {
         item.appendChild(mainButton);
       }
 
-      // Delete button.
       const deleteButton = document.createElement("button");
 
       deleteButton.type = "button";
@@ -485,13 +509,14 @@ async function loadMyPhotoGallery(userId, mainPhotoPath) {
 
       item.appendChild(deleteButton);
 
-      gallery.appendChild(item);
-      displayedCount++;
+      fragment.appendChild(item);
     }
+
+    gallery.appendChild(fragment);
 
     if (message) {
       message.textContent =
-        "Showing " + displayedCount + " of your uploaded photographs. " +
+        "Showing " + availablePhotos.length + " of your uploaded photographs. " +
         "You can upload up to " + MAX_PROFILE_PHOTOS + " photos.";
     }
 
@@ -999,7 +1024,6 @@ if ($("editProfileForm")) {
       let photoPath =
         existingProfile.photo_url || "";
 
-      // Enforce the six-photo limit before uploading.
       if (photoFile) {
         const existingPhotos = await getMyPhotoFiles(user.id);
 
