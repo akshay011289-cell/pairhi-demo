@@ -1,3 +1,4 @@
+
 <!doctype html>
 <html lang="en">
 <head>
@@ -5,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#ed2b83">
 
-  <meta name="description" content="PairHi helps adults discover genuine connections for serious relationships and marriage. Explore mutual matches and build meaningful relationships.">
+  <meta name="description" content="PairHi helps adults discover genuine connections for serious relationships and marriage.">
 
   <meta property="og:title" content="PairHi – Real People. Real Profiles. Real Connections.">
   <meta property="og:description" content="A serious relationship and marriage-focused community with mutual matching.">
@@ -15,7 +16,7 @@
   <link rel="stylesheet" href="styles.css">
   <link rel="icon" type="image/png" href="assets/pairhi-logo.png">
 
-  <title>PairHi – Serious Dating & Marriage Connections</title>
+  <title>PairHi – Serious Relationships & Marriage</title>
 
   <style>
     dialog {
@@ -147,24 +148,24 @@
   </a>
 
   <nav>
-  <button
-    class="outline"
-    id="profileBtn"
-    type="button"
-    onclick="if (typeof window.openMemberProfile === 'function') { window.openMemberProfile(); } else { alert('PairHi is still loading. Please refresh the page.'); }"
-  >
-    My profile
-  </button>
+    <button
+      class="outline"
+      id="profileBtn"
+      type="button"
+      onclick="if (typeof window.openMemberProfile === 'function') { window.openMemberProfile(); } else { alert('PairHi is still loading. Please refresh the page.'); }"
+    >
+      My profile
+    </button>
 
-  <button
-    class="outline"
-    id="logoutBtn"
-    type="button"
-    hidden
-  >
-    Log out
-  </button>
-</nav>
+    <button
+      class="outline"
+      id="logoutBtn"
+      type="button"
+      hidden
+    >
+      Log out
+    </button>
+  </nav>
 </header>
 
 <main>
@@ -186,7 +187,7 @@
       </a>
 
       <p class="micro">
-        Prototype demo · All profiles shown are fictional examples
+        A community exclusively for serious relationships and marriage.
       </p>
     </div>
 
@@ -214,7 +215,7 @@
         <span class="eyebrow">YOUR NEXT CHAPTER</span>
         <h2>People to discover</h2>
         <p>
-          Explore sample profiles and try the matching experience.
+          Discover members seeking committed relationships and marriage.
         </p>
       </div>
 
@@ -223,8 +224,9 @@
 
         <select id="intentFilter">
           <option value="all">All serious connections</option>
-          <option value="Marriage">Marriage</option>
-          <option value="Long-term relationship">Long-term relationship</option>
+          <option value="marriage">Marriage</option>
+          <option value="serious_relationship">Long-term Serious Relationship</option>
+          <option value="marriage_oriented_serious_relationship">Marriage-Oriented Serious Relationship</option>
         </select>
       </label>
     </div>
@@ -234,14 +236,14 @@
       <div id="card" class="person-card">
 
         <div class="photo" id="photo">
-          <span class="verified">✓ Demo profile</span>
-          <span class="photo-number" id="photoNumber">01 / 04</span>
+          <span class="verified">✓ Member profile</span>
+          <span class="photo-number" id="photoNumber">01</span>
         </div>
 
         <div class="person-info">
           <div>
-            <h3 id="personName">Aarohi, 28</h3>
-            <p id="personLocation">Delhi · India</p>
+            <h3 id="personName">Discover members</h3>
+            <p id="personLocation">Find your compatible connection</p>
           </div>
 
           <span class="intent" id="personIntent">Marriage</span>
@@ -253,7 +255,7 @@
 
         <div class="compat">
           <span>Values & lifestyle</span>
-          <strong id="compatScore">Good potential</strong>
+          <strong id="compatScore">Compatibility matters</strong>
         </div>
 
         <div class="actions">
@@ -286,7 +288,7 @@
     </div>
 
     <div class="feedback" id="feedback" role="status">
-      Choose “Interested” or pass to explore the demo.
+      Discover members seeking serious relationships and marriage.
     </div>
 
   </section>
@@ -304,8 +306,8 @@
         <b>01</b>
         <h3>Share your intentions</h3>
         <p>
-          Be clear about whether you are seeking marriage
-          or a committed long-term relationship.
+          Choose marriage, a committed long-term relationship,
+          or a serious relationship with marriage in mind.
         </p>
       </article>
 
@@ -313,8 +315,8 @@
         <b>02</b>
         <h3>Discover compatibility</h3>
         <p>
-          Compare interests, values and lifestyle preferences
-          before deciding to connect.
+          Compare education, interests, values and lifestyle
+          preferences before deciding to connect.
         </p>
       </article>
 
@@ -323,7 +325,7 @@
         <h3>Connect by consent</h3>
         <p>
           Only mutual interest should open a conversation.
-          Block and report tools belong in the real product.
+          Respect, privacy and safety matter.
         </p>
       </article>
 
@@ -366,8 +368,8 @@
 
     <p class="micro">
       Pricing is a proposed plan only. Payments and subscriptions
-      are not active in this demo. Mutual-match chat and calls are
-      planned to be free for both matched members.
+      are not active. Mutual-match chat and calls are planned
+      to be free for both matched members.
     </p>
 
   </section>
@@ -385,7 +387,7 @@
     </div>
 
     <a class="primary" href="#discover">
-      Try the demo →
+      Explore profiles →
     </a>
 
   </section>
@@ -397,8 +399,7 @@
   <strong>PairHi</strong>
 
   <span>
-    Concept MVP · Demo profiles are fictional ·
-    Not yet accepting real registrations
+    A serious relationship and marriage-focused community
   </span>
 
   <span>
@@ -407,9 +408,7 @@
 </footer>
 
 
-<!-- =========================================
-     LOGIN AND REGISTRATION DIALOG
-========================================= -->
+<!-- LOGIN AND REGISTRATION DIALOG -->
 
 <dialog id="profileDialog">
 
@@ -457,8 +456,8 @@
       <label for="authGoal">Relationship goal *</label>
       <select id="authGoal">
         <option value="marriage">Marriage</option>
-        <option value="serious_relationship">Serious relationship</option>
-        <option value="friendship">Friendship</option>
+        <option value="serious_relationship">Long-term Serious Relationship</option>
+        <option value="marriage_oriented_serious_relationship">Marriage-Oriented Serious Relationship</option>
       </select>
     </div>
 
@@ -504,15 +503,6 @@
         Log in
       </button>
 
-      <button
-        class="outline"
-        id="logoutBtn"
-        type="button"
-        hidden
-      >
-        Log out
-      </button>
-
     </div>
 
     <div
@@ -527,9 +517,7 @@
 </dialog>
 
 
-<!-- =========================================
-     EDIT PROFILE DIALOG
-========================================= -->
+<!-- EDIT PROFILE DIALOG -->
 
 <dialog id="editProfileDialog">
 
@@ -552,7 +540,8 @@
     <form id="editProfileForm">
 
       <p class="required-note">
-        Please complete all required fields. Your profile photo is mandatory.
+        Complete the required fields. Your profile photograph is mandatory.
+        Additional personal details are optional.
       </p>
 
       <div class="form-field">
@@ -624,9 +613,58 @@
         <label for="profileGoal">Relationship goal *</label>
         <select id="profileGoal" required>
           <option value="marriage">Marriage</option>
-          <option value="serious_relationship">Serious relationship</option>
-          <option value="friendship">Friendship</option>
+          <option value="serious_relationship">Long-term Serious Relationship</option>
+          <option value="marriage_oriented_serious_relationship">Marriage-Oriented Serious Relationship</option>
         </select>
+      </div>
+
+      <div class="form-field">
+        <label for="profileEducation">Education</label>
+        <input
+          id="profileEducation"
+          type="text"
+          maxlength="150"
+          placeholder="Your qualification or degree"
+        >
+      </div>
+
+      <div class="form-field">
+        <label for="profileOccupation">Occupation</label>
+        <input
+          id="profileOccupation"
+          type="text"
+          maxlength="150"
+          placeholder="Your profession or work"
+        >
+      </div>
+
+      <div class="form-field">
+        <label for="profileMaritalStatus">Marital status</label>
+        <select id="profileMaritalStatus">
+          <option value="">Prefer not to say</option>
+          <option value="never_married">Never married</option>
+          <option value="divorced">Divorced</option>
+          <option value="widowed">Widowed</option>
+          <option value="separated">Separated</option>
+        </select>
+      </div>
+
+      <div class="form-field">
+        <label for="profileInterests">Interests and hobbies</label>
+        <textarea
+          id="profileInterests"
+          maxlength="500"
+          placeholder="For example: travelling, reading, music, fitness..."
+        ></textarea>
+      </div>
+
+      <div class="form-field">
+        <label for="profileLifestyle">Lifestyle</label>
+        <textarea
+          id="profileLifestyle"
+          maxlength="500"
+          placeholder="Describe your lifestyle, habits and preferences..."
+        ></textarea>
       </div>
 
       <div class="form-field">
@@ -713,9 +751,7 @@
 </dialog>
 
 
-<!-- =========================================
-     ERROR DIAGNOSTICS
-========================================= -->
+<!-- ERROR DIAGNOSTICS -->
 
 <script>
   window.addEventListener("error", function(event) {
@@ -743,21 +779,21 @@
       )
     );
   });
+
+  document.getElementById("year").textContent =
+    new Date().getFullYear();
 </script>
 
 
-<!-- =========================================
-     SUPABASE LIBRARY
-========================================= -->
+<!-- SUPABASE LIBRARY -->
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 
-<!-- =========================================
-     PAIRHI APPLICATION JAVASCRIPT
-========================================= -->
+<!-- PAIRHI APPLICATION JAVASCRIPT -->
 
-<script src="app.js?v=20261120fix4"></script>
-<script src="discovery.js?v=20261120discovery1"></script>
+<script src="app.js?v=20261121profile1"></script>
+<script src="discovery.js?v=20261121profile1"></script>
+
 </body>
 </html>
