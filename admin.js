@@ -11,6 +11,7 @@ const messageElement = document.getElementById("adminMessage");
 
 const loadButton = document.getElementById("loadProfilesBtn");
 const loadReportsButton = document.getElementById("loadReportsBtn");
+const loadAccountsButton = document.getElementById("loadAccountsBtn");
 const logoutButton = document.getElementById("adminLogoutBtn");
 
 const membersPanel = document.getElementById("membersPanel");
@@ -18,6 +19,9 @@ const profilesList = document.getElementById("profilesList");
 
 const reportsPanel = document.getElementById("reportsPanel");
 const reportsList = document.getElementById("reportsList");
+
+const accountsPanel = document.getElementById("accountsPanel");
+const accountsList = document.getElementById("accountsList");
 
 let adminVerified = false;
 
@@ -96,6 +100,16 @@ function reportStatusLabel(value) {
     under_review: "Under Review",
     resolved: "Resolved",
     dismissed: "Dismissed"
+  };
+
+  return statuses[value] || displayValue(value);
+}
+
+function accountStatusLabel(value) {
+  const statuses = {
+    active: "Active",
+    suspended: "Suspended",
+    disabled: "Disabled"
   };
 
   return statuses[value] || displayValue(value);
@@ -226,9 +240,7 @@ async function loadProfiles() {
 
   } catch (error) {
     profilesList.replaceChildren();
-
     membersPanel.hidden = true;
-
     adminVerified = false;
 
     showMessage(
@@ -292,7 +304,6 @@ async function loadReports() {
   }
 
   loadReportsButton.disabled = true;
-
   reportsList.replaceChildren();
 
   addText(
@@ -404,10 +415,8 @@ async function loadReports() {
 
       statusOptions.forEach(option => {
         const optionElement = document.createElement("option");
-
         optionElement.value = option.value;
         optionElement.textContent = option.label;
-
         statusSelect.appendChild(optionElement);
       });
 
@@ -427,7 +436,6 @@ async function loadReports() {
       notesLabel.textContent = "Private administrator notes";
 
       const notesInput = document.createElement("textarea");
-
       notesInput.value = report.admin_notes || "";
       notesInput.placeholder =
         "Write internal notes about your review...";
@@ -527,6 +535,230 @@ async function updateReport(
 }
 
 /* =====================================================
+   ACCOUNT MODERATION
+===================================================== */
+
+async function loadAccounts() {
+  if (!adminVerified) {
+    showMessage("Administrator access has not been verified.");
+    return;
+  }
+
+  loadAccountsButton.disabled = true;
+  accountsPanel.hidden = false;
+  accountsList.replaceChildren();
+
+  addText(
+    accountsList,
+    "p",
+    "Loading member account statuses..."
+  );
+
+  try {
+    const { data, error } = await adminClient.rpc(
+      "pairhi_admin_list_account_statuses"
+    );
+
+    if (error) throw error;
+
+    accountsList.replaceChildren();
+
+    if (!data || data.length === 0) {
+      addText(
+        accountsList,
+        "p",
+        "No member accounts found."
+      );
+
+      showMessage("Account moderation loaded. No accounts found.");
+      return;
+    }
+
+    showMessage(
+      data.length + " member account(s) loaded successfully."
+    );
+
+    data.forEach(account => {
+      const card = document.createElement("article");
+      card.className = "account";
+
+      addText(
+        card,
+        "h3",
+        displayValue(account.display_name)
+      );
+
+      addText(
+        card,
+        "p",
+        "City: " + displayValue(account.city)
+      );
+
+      addText(
+        card,
+        "p",
+        "Verification status: " +
+        displayValue(account.verification_status)
+      );
+
+      addText(
+        card,
+        "p",
+        "Account status: " +
+        accountStatusLabel(account.account_status),
+        "status"
+      );
+
+      addText(
+        card,
+        "p",
+        "Last reviewed: " + formatDate(account.reviewed_at)
+      );
+
+      const statusLabel = document.createElement("label");
+      statusLabel.className = "field-label";
+      statusLabel.textContent = "Change account status";
+
+      const statusSelect = document.createElement("select");
+
+      const statusOptions = [
+        { value: "active", label: "Active - Normal access" },
+        { value: "suspended", label: "Suspended - Restrict access" },
+        { value: "disabled", label: "Disabled - Restrict access" }
+      ];
+
+      statusOptions.forEach(option => {
+        const optionElement = document.createElement("option");
+        optionElement.value = option.value;
+        optionElement.textContent = option.label;
+        statusSelect.appendChild(optionElement);
+      });
+
+      statusSelect.value = [
+        "active",
+        "suspended",
+        "disabled"
+      ].includes(account.account_status)
+        ? account.account_status
+        : "active";
+
+      statusLabel.appendChild(statusSelect);
+      card.appendChild(statusLabel);
+
+      const notesLabel = document.createElement("label");
+      notesLabel.className = "field-label";
+      notesLabel.textContent = "Private administrator notes";
+
+      const notesInput = document.createElement("textarea");
+      notesInput.value = account.admin_notes || "";
+      notesInput.placeholder =
+        "Enter the private reason or notes for this account decision...";
+
+      notesLabel.appendChild(notesInput);
+      card.appendChild(notesLabel);
+
+      const actions = document.createElement("div");
+      actions.className = "account-actions";
+
+      const saveButton = createActionButton(
+        "Save account status",
+        "primary",
+        async () => {
+          await updateAccountStatus(
+            account.user_id,
+            statusSelect.value,
+            notesInput.value,
+            saveButton
+          );
+        }
+      );
+
+      actions.appendChild(saveButton);
+      card.appendChild(actions);
+
+      accountsList.appendChild(card);
+    });
+
+  } catch (error) {
+    accountsList.replaceChildren();
+
+    addText(
+      accountsList,
+      "p",
+      "Could not load member accounts: " + error.message
+    );
+
+    showMessage(
+      "Account loading error: " + error.message
+    );
+
+    console.error("PairHi account loading error:", error);
+
+  } finally {
+    loadAccountsButton.disabled = false;
+  }
+}
+
+async function updateAccountStatus(
+  userId,
+  newStatus,
+  adminNotes,
+  saveButton
+) {
+  let confirmationMessage =
+    "Are you sure you want to change this account to " +
+    newStatus.toUpperCase() +
+    "?";
+
+  if (newStatus === "disabled") {
+    confirmationMessage =
+      "WARNING: You are about to DISABLE this member account. " +
+      "Access to protected PairHi features will be restricted. " +
+      "An administrator can restore it later. Continue?";
+  } else if (newStatus === "suspended") {
+    confirmationMessage =
+      "This will SUSPEND the member's access to protected PairHi features. Continue?";
+  } else if (newStatus === "active") {
+    confirmationMessage =
+      "This will RESTORE the member's account to Active status. Continue?";
+  }
+
+  if (!window.confirm(confirmationMessage)) return;
+
+  saveButton.disabled = true;
+
+  try {
+    showMessage("Updating member account status...");
+
+    const { error } = await adminClient.rpc(
+      "pairhi_admin_update_account_status",
+      {
+        p_user_id: userId,
+        p_new_status: newStatus,
+        p_admin_notes: adminNotes.trim() || null
+      }
+    );
+
+    if (error) throw error;
+
+    showMessage(
+      "Account status updated successfully. Refreshing accounts..."
+    );
+
+    await loadAccounts();
+
+  } catch (error) {
+    saveButton.disabled = false;
+
+    showMessage(
+      "Could not update account status: " + error.message
+    );
+
+    console.error("PairHi account update error:", error);
+  }
+}
+
+/* =====================================================
    ADMIN LOGIN AND LOGOUT
 ===================================================== */
 
@@ -545,6 +777,7 @@ async function initializeAdmin() {
 
       loadButton.hidden = true;
       loadReportsButton.hidden = true;
+      loadAccountsButton.hidden = true;
       logoutButton.hidden = true;
 
       return;
@@ -568,9 +801,11 @@ async function initializeAdmin() {
     if (verified) {
       loadButton.hidden = false;
       loadReportsButton.hidden = false;
+      loadAccountsButton.hidden = false;
     } else {
       loadButton.hidden = false;
       loadReportsButton.hidden = true;
+      loadAccountsButton.hidden = true;
     }
 
   } catch (error) {
@@ -580,6 +815,7 @@ async function initializeAdmin() {
 
     membersPanel.hidden = true;
     reportsPanel.hidden = true;
+    accountsPanel.hidden = true;
 
     console.error("PairHi admin access error:", error);
   }
@@ -594,10 +830,13 @@ loadButton.addEventListener("click", async () => {
 
   if (verified) {
     loadReportsButton.hidden = false;
+    loadAccountsButton.hidden = false;
   }
 });
 
 loadReportsButton.addEventListener("click", loadReports);
+
+loadAccountsButton.addEventListener("click", loadAccounts);
 
 logoutButton.addEventListener("click", async () => {
   try {
@@ -609,13 +848,16 @@ logoutButton.addEventListener("click", async () => {
 
     membersPanel.hidden = true;
     reportsPanel.hidden = true;
+    accountsPanel.hidden = true;
 
     loadButton.hidden = true;
     loadReportsButton.hidden = true;
+    loadAccountsButton.hidden = true;
     logoutButton.hidden = true;
 
     profilesList.replaceChildren();
     reportsList.replaceChildren();
+    accountsList.replaceChildren();
 
     showMessage("You have logged out successfully.");
 
