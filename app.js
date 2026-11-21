@@ -86,58 +86,118 @@ async function getMyPhotoFiles(userId) {
 }
 
 // ======================================
-// PHOTO VIEWER
+// FULL-SCREEN PHOTO VIEWER
 // ======================================
 
 function openPhotoViewer(imageUrl) {
   let viewer = $("pairhiPhotoViewer");
 
+  // Replace any old non-dialog viewer.
+  if (viewer && !(viewer instanceof HTMLDialogElement)) {
+    viewer.remove();
+    viewer = null;
+  }
+
   if (!viewer) {
-    viewer = document.createElement("div");
+    viewer = document.createElement("dialog");
     viewer.id = "pairhiPhotoViewer";
 
     viewer.style.cssText =
-      "position:fixed;inset:0;z-index:2147483647;" +
-      "background:rgba(0,0,0,.92);display:flex;" +
-      "align-items:center;justify-content:center;" +
-      "padding:18px;";
+      "position:fixed;" +
+      "inset:0;" +
+      "margin:auto;" +
+      "padding:16px;" +
+      "border:0;" +
+      "border-radius:12px;" +
+      "background:#111;" +
+      "color:white;" +
+      "width:calc(100% - 24px);" +
+      "max-width:900px;" +
+      "max-height:92vh;" +
+      "overflow:auto;" +
+      "box-sizing:border-box;";
+
+    const backdropStyle = document.createElement("style");
+    backdropStyle.id = "pairhiPhotoViewerStyle";
+
+    backdropStyle.textContent =
+      "#pairhiPhotoViewer::backdrop {" +
+      "background:rgba(0,0,0,.94);" +
+      "}";
+
+    if (!$("pairhiPhotoViewerStyle")) {
+      document.head.appendChild(backdropStyle);
+    }
 
     const closeButton = document.createElement("button");
+
     closeButton.type = "button";
     closeButton.textContent = "✕";
-    closeButton.setAttribute("aria-label", "Close photo");
+    closeButton.setAttribute("aria-label", "Close enlarged photo");
 
     closeButton.style.cssText =
-      "position:absolute;top:15px;right:15px;" +
-      "width:42px;height:42px;border:0;" +
-      "border-radius:50%;background:#fff;" +
-      "color:#222;font-size:22px;cursor:pointer;";
+      "display:block;" +
+      "position:sticky;" +
+      "top:0;" +
+      "margin:0 0 12px auto;" +
+      "width:44px;" +
+      "height:44px;" +
+      "border:0;" +
+      "border-radius:50%;" +
+      "background:white;" +
+      "color:#222;" +
+      "font-size:24px;" +
+      "font-weight:bold;" +
+      "cursor:pointer;" +
+      "z-index:2;";
 
     const image = document.createElement("img");
+
     image.id = "pairhiPhotoViewerImage";
-    image.alt = "Full size profile photograph";
+    image.alt = "Full size PairHi profile photograph";
 
     image.style.cssText =
-      "display:block;max-width:100%;max-height:85vh;" +
-      "object-fit:contain;border-radius:8px;";
+      "display:block;" +
+      "width:100%;" +
+      "max-width:100%;" +
+      "max-height:78vh;" +
+      "object-fit:contain;" +
+      "border-radius:8px;" +
+      "margin:0 auto;";
 
     closeButton.addEventListener("click", () => {
-      viewer.style.display = "none";
+      if (viewer.open) viewer.close();
     });
 
     viewer.addEventListener("click", event => {
-      if (event.target === viewer) {
-        viewer.style.display = "none";
+      if (event.target === viewer && viewer.open) {
+        viewer.close();
       }
+    });
+
+    viewer.addEventListener("close", () => {
+      const viewerImage = $("pairhiPhotoViewerImage");
+      if (viewerImage) viewerImage.removeAttribute("src");
     });
 
     viewer.appendChild(closeButton);
     viewer.appendChild(image);
+
     document.body.appendChild(viewer);
   }
 
-  $("pairhiPhotoViewerImage").src = imageUrl;
-  viewer.style.display = "flex";
+  const viewerImage = $("pairhiPhotoViewerImage");
+
+  if (!viewerImage) {
+    throw new Error("Photo viewer image element is missing.");
+  }
+
+  viewerImage.src = imageUrl;
+
+  // showModal() places this dialog above the existing profile dialog.
+  if (!viewer.open) {
+    viewer.showModal();
+  }
 }
 
 // ======================================
@@ -187,7 +247,7 @@ async function deleteMyProfilePhoto(userId, photoPath, currentMainPhoto) {
       );
     }
 
-    // If deleting the main photo, make another photo the main photo first.
+    // If deleting the main photo, change it first.
     if (photoPath === currentMainPhoto) {
       const replacement = files.find(
         file => userId + "/" + file.name !== photoPath
@@ -297,6 +357,7 @@ async function loadMyPhotoGallery(userId, mainPhotoPath) {
 
       // Photo thumbnail button.
       const imageButton = document.createElement("button");
+
       imageButton.type = "button";
       imageButton.setAttribute("aria-label", "Open photograph");
 
@@ -317,7 +378,14 @@ async function loadMyPhotoGallery(userId, mainPhotoPath) {
       imageButton.appendChild(image);
 
       imageButton.addEventListener("click", () => {
-        openPhotoViewer(data.signedUrl);
+        try {
+          openPhotoViewer(data.signedUrl);
+        } catch (error) {
+          console.error("PAIRHI PHOTO VIEWER ERROR:", error);
+          showProfileMessage(
+            "Could not open photograph: " + error.message
+          );
+        }
       });
 
       item.appendChild(imageButton);
