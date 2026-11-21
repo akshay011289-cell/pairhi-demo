@@ -1,6 +1,7 @@
+
 /* =====================================================
    PAIRHI DISCOVERY, MUTUAL MATCHES, PROFILES AND CHAT
-   Uses the existing Supabase database and RLS policies.
+   Uses existing Supabase database and RLS policies.
 ===================================================== */
 
 let discoveryCandidates = [];
@@ -40,10 +41,6 @@ function compatibleGender(preference, gender) {
   return preference === "any" || preference === gender;
 }
 
-/* =====================================================
-   RELATIONSHIP GOALS
-===================================================== */
-
 function goalDatabaseValue(value) {
   const allowedGoals = [
     "marriage",
@@ -52,7 +49,6 @@ function goalDatabaseValue(value) {
   ];
 
   if (!value || value === "all") return null;
-
   return allowedGoals.includes(value) ? value : null;
 }
 
@@ -72,7 +68,7 @@ function safeText(value, fallback = "Not provided") {
 }
 
 /* =====================================================
-   SHARED DIALOG STYLES
+   SHARED DIALOG AND INBOX STYLES
 ===================================================== */
 
 function addPairHiDialogStyles() {
@@ -99,9 +95,7 @@ function addPairHiDialogStyles() {
       backdrop-filter:blur(3px);
     }
 
-    .pairhi-dialog-inner {
-      padding:20px;
-    }
+    .pairhi-dialog-inner { padding:20px; }
 
     .pairhi-dialog-header {
       display:flex;
@@ -113,7 +107,7 @@ function addPairHiDialogStyles() {
 
     .pairhi-dialog-header h2 {
       margin:0;
-      color:#8f3658;
+      color:#a52d61;
       font-size:21px;
     }
 
@@ -143,7 +137,7 @@ function addPairHiDialogStyles() {
 
     .pairhi-profile-detail strong {
       display:block;
-      color:#8f3658;
+      color:#a52d61;
       font-size:12px;
       margin-bottom:4px;
     }
@@ -159,7 +153,7 @@ function addPairHiDialogStyles() {
       border:0;
       border-radius:10px;
       padding:12px 17px;
-      background:#8f3658;
+      background:linear-gradient(135deg,#e52d70,#d51f45);
       color:white;
       font-weight:600;
       cursor:pointer;
@@ -171,7 +165,7 @@ function addPairHiDialogStyles() {
       border-radius:10px;
       padding:11px 15px;
       background:#fff;
-      color:#8f3658;
+      color:#a52d61;
       font-weight:600;
       cursor:pointer;
       min-height:43px;
@@ -204,24 +198,7 @@ function addPairHiDialogStyles() {
       background:#f5dce6;
     }
 
-    #pairhiMatches img.pairhi-match-avatar {
-      display:block !important;
-      flex:0 0 48px !important;
-      width:48px !important;
-      height:48px !important;
-      min-width:48px !important;
-      min-height:48px !important;
-      max-width:48px !important;
-      max-height:48px !important;
-      aspect-ratio:1 / 1 !important;
-      object-fit:cover !important;
-      border-radius:50% !important;
-    }
-
-    .pairhi-match-details {
-      flex:1;
-      min-width:0;
-    }
+    .pairhi-match-details { flex:1; min-width:0; }
 
     .pairhi-match-details strong {
       display:block;
@@ -248,6 +225,165 @@ function addPairHiDialogStyles() {
       min-height:35px;
     }
 
+    /* Messages inbox */
+
+    #messagesInbox {
+      width:100%;
+      max-width:760px;
+      margin:0 auto;
+    }
+
+    .pairhi-inbox-heading {
+      color:#a52d61;
+      margin:0 0 5px;
+      font-size:22px;
+    }
+
+    .pairhi-inbox-intro {
+      color:#766d73;
+      margin:0 0 18px;
+      font-size:13px;
+    }
+
+    .pairhi-inbox-list {
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+
+    .pairhi-inbox-card {
+      display:flex;
+      align-items:center;
+      gap:12px;
+      width:100%;
+      box-sizing:border-box;
+      padding:13px;
+      border:1px solid #f0dce5;
+      border-radius:15px;
+      background:#fff;
+      text-align:left;
+      box-shadow:0 3px 12px rgba(120,35,75,.05);
+    }
+
+    .pairhi-inbox-avatar,
+    .pairhi-inbox-profile-button img {
+      flex:0 0 52px;
+      width:52px;
+      height:52px;
+      min-width:52px;
+      border-radius:50%;
+      object-fit:cover;
+      background:#f8dce8;
+    }
+
+    .pairhi-inbox-profile-button {
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      flex:0 0 52px;
+      width:52px;
+      height:52px;
+      padding:0;
+      border:0;
+      border-radius:50%;
+      background:#f8dce8;
+      color:#a52d61;
+      font-size:20px;
+      font-weight:700;
+      cursor:pointer;
+      overflow:hidden;
+    }
+
+    .pairhi-inbox-profile-button img {
+      display:block;
+    }
+
+    .pairhi-inbox-details {
+      flex:1;
+      min-width:0;
+    }
+
+    .pairhi-inbox-name {
+      display:block;
+      padding:0;
+      border:0;
+      background:transparent;
+      color:#30232a;
+      font-size:15px;
+      font-weight:700;
+      text-align:left;
+      cursor:pointer;
+      max-width:100%;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+    }
+
+    .pairhi-inbox-name:active,
+    .pairhi-inbox-name:hover {
+      color:#d52c68;
+      text-decoration:underline;
+    }
+
+    .pairhi-inbox-preview {
+      display:block;
+      margin-top:5px;
+      color:#766d73;
+      font-size:13px;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+    }
+
+    .pairhi-inbox-time {
+      display:block;
+      margin-top:5px;
+      color:#a1979d;
+      font-size:11px;
+    }
+
+    .pairhi-inbox-open {
+      flex:0 0 auto;
+      border:0;
+      border-radius:20px;
+      padding:9px 12px;
+      background:#fce8f0;
+      color:#a52d61;
+      font-size:12px;
+      font-weight:700;
+      cursor:pointer;
+    }
+
+    .pairhi-inbox-empty {
+      padding:25px 18px;
+      text-align:center;
+      color:#766d73;
+      border:1px dashed #e8cbd8;
+      border-radius:15px;
+      background:#fffafd;
+      line-height:1.6;
+    }
+
+    /* Chat */
+
+    .pairhi-chat-profile-button {
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:0;
+      border:0;
+      background:transparent;
+      color:#a52d61;
+      font-size:18px;
+      font-weight:700;
+      text-align:left;
+      cursor:pointer;
+    }
+
+    .pairhi-chat-profile-button:hover {
+      text-decoration:underline;
+    }
+
     .pairhi-chat-messages {
       height:min(48vh,390px);
       overflow-y:auto;
@@ -271,7 +407,7 @@ function addPairHiDialogStyles() {
 
     .pairhi-chat-mine {
       align-self:flex-end;
-      background:#8f3658;
+      background:#d92d68;
       color:#fff;
       border-bottom-right-radius:3px;
     }
@@ -329,7 +465,7 @@ function addPairHiDialogStyles() {
       padding:9px 12px;
       min-height:38px;
       background:#fff;
-      color:#8f3658;
+      color:#a52d61;
       font-size:13px;
       font-weight:600;
       cursor:pointer;
@@ -340,9 +476,7 @@ function addPairHiDialogStyles() {
       color:#9b263f;
     }
 
-    .pairhi-report-field {
-      margin:0 0 14px;
-    }
+    .pairhi-report-field { margin:0 0 14px; }
 
     .pairhi-report-field label {
       display:block;
@@ -372,6 +506,16 @@ function addPairHiDialogStyles() {
       .pairhi-dialog-inner {padding:15px}
       .pairhi-match-card {align-items:flex-start}
       .pairhi-match-actions {gap:5px}
+      .pairhi-inbox-card {gap:9px;padding:10px}
+      .pairhi-inbox-avatar,
+      .pairhi-inbox-profile-button,
+      .pairhi-inbox-profile-button img {
+        flex-basis:46px;
+        width:46px;
+        height:46px;
+        min-width:46px;
+      }
+      .pairhi-inbox-open {padding:8px 9px}
     }
   `;
 
@@ -429,9 +573,11 @@ function createReportDialog() {
 
   const reasonWrap = document.createElement("div");
   reasonWrap.className = "pairhi-report-field";
+
   const reasonLabel = document.createElement("label");
   reasonLabel.htmlFor = "pairhiReportReason";
   reasonLabel.textContent = "Reason for reporting *";
+
   const reason = document.createElement("select");
   reason.id = "pairhiReportReason";
   reason.required = true;
@@ -446,23 +592,28 @@ function createReportDialog() {
     ["underage", "Underage member"],
     ["other", "Other concern"]
   ];
-     reasonOptions.forEach(([value, label]) => {
+
+  reasonOptions.forEach(([value, label]) => {
     const option = document.createElement("option");
     option.value = value;
     option.textContent = label;
     reason.appendChild(option);
   });
+
   reasonWrap.append(reasonLabel, reason);
 
   const descriptionWrap = document.createElement("div");
   descriptionWrap.className = "pairhi-report-field";
+
   const descriptionLabel = document.createElement("label");
   descriptionLabel.htmlFor = "pairhiReportDescription";
   descriptionLabel.textContent = "Additional details (optional)";
+
   const description = document.createElement("textarea");
   description.id = "pairhiReportDescription";
   description.maxLength = 1000;
   description.placeholder = "Share any helpful details (up to 1,000 characters).";
+
   descriptionWrap.append(descriptionLabel, description);
 
   const status = document.createElement("div");
@@ -500,14 +651,18 @@ function openPairHiReport(targetUserId) {
     discoveryMessage("Please log in before submitting a report.");
     return;
   }
+
   if (!targetUserId || targetUserId === discoveryUser.id) return;
 
   const dialog = createReportDialog();
   dialog.dataset.reportedUserId = targetUserId;
+
   const form = discovery$("pairhiReportForm");
   if (form) form.reset();
+
   const status = discovery$("pairhiReportStatus");
   if (status) status.textContent = "";
+
   if (!dialog.open) dialog.showModal();
 }
 
@@ -542,13 +697,16 @@ async function submitPairHiReport(event) {
     if (error) throw error;
 
     if (status) status.textContent = "Thank you. Your report has been submitted for review.";
+
     window.setTimeout(() => {
       if (dialog?.open) dialog.close();
       discoveryMessage("Your report has been submitted privately to the PairHi team.");
     }, 900);
+
   } catch (error) {
     console.error("PairHi report submission error:", error);
     if (status) status.textContent = "Could not submit report: " + error.message;
+
   } finally {
     if (submit) submit.disabled = false;
   }
@@ -560,6 +718,7 @@ async function blockPairHiMember(targetUserId, matchId = null) {
   const confirmed = window.confirm(
     "Block this member? They will disappear from your discovery and mutual matches, and you will not be able to message each other."
   );
+
   if (!confirmed) return;
 
   try {
@@ -587,7 +746,10 @@ async function blockPairHiMember(targetUserId, matchId = null) {
     if (profileDialog?.open) profileDialog.close();
 
     discoveryMessage("Member blocked. Their profile and conversation are now hidden from you.");
+
     await loadDiscovery();
+    await loadPairHiInbox();
+
   } catch (error) {
     console.error("PairHi block error:", error);
     discoveryMessage("Could not block this member: " + error.message);
@@ -595,12 +757,12 @@ async function blockPairHiMember(targetUserId, matchId = null) {
 }
 
 /* =====================================================
-   PROFILE DIALOG
+   MATCHED MEMBER PROFILE
+   Clicking a member name or photo opens this profile.
 ===================================================== */
 
 function createProfileDialog() {
   let dialog = discovery$("pairhiProfileDialog");
-
   if (dialog) return dialog;
 
   addPairHiDialogStyles();
@@ -677,7 +839,7 @@ async function openMatchedProfile(matchId) {
       .from("profile-photos")
       .createSignedUrl(member.photo_url, 3600);
 
-    if (!error && data && data.signedUrl) {
+    if (!error && data?.signedUrl) {
       image.src = data.signedUrl;
     } else {
       image.alt = "Profile photograph unavailable";
@@ -693,13 +855,7 @@ async function openMatchedProfile(matchId) {
   addProfileDetail(content, "Name and age", name);
   addProfileDetail(content, "City", member.city);
   addProfileDetail(content, "Gender", member.gender);
-
-  addProfileDetail(
-    content,
-    "Relationship goal",
-    relationshipGoalLabel(member.relationship_goal)
-  );
-
+  addProfileDetail(content, "Relationship goal", relationshipGoalLabel(member.relationship_goal));
   addProfileDetail(content, "Education", member.education);
   addProfileDetail(content, "Occupation", member.occupation);
   addProfileDetail(content, "Marital status", member.marital_status);
@@ -708,13 +864,12 @@ async function openMatchedProfile(matchId) {
   addProfileDetail(content, "About", member.bio);
 
   const actions = document.createElement("div");
-  actions.style.cssText =
-    "display:flex;gap:10px;flex-wrap:wrap;margin-top:17px";
+  actions.style.cssText = "display:flex;gap:10px;flex-wrap:wrap;margin-top:17px";
 
   const messageButton = document.createElement("button");
   messageButton.type = "button";
   messageButton.className = "pairhi-action-button";
-  messageButton.textContent = "Start messaging";
+  messageButton.textContent = "Open conversation";
 
   messageButton.addEventListener("click", () => {
     dialog.close();
@@ -732,6 +887,7 @@ async function openMatchedProfile(matchId) {
 
   const safetyActions = document.createElement("div");
   safetyActions.className = "pairhi-safety-actions";
+
   safetyActions.append(
     createSafetyButton("Report member", "pairhi-safety-button", () => {
       openPairHiReport(member.id);
@@ -740,6 +896,7 @@ async function openMatchedProfile(matchId) {
       blockPairHiMember(member.id, matchId);
     })
   );
+
   content.appendChild(safetyActions);
 
   if (!dialog.open) dialog.showModal();
@@ -751,7 +908,6 @@ async function openMatchedProfile(matchId) {
 
 function createChatDialog() {
   let dialog = discovery$("pairhiChatDialog");
-
   if (dialog) return dialog;
 
   addPairHiDialogStyles();
@@ -766,16 +922,25 @@ function createChatDialog() {
   const header = document.createElement("div");
   header.className = "pairhi-dialog-header";
 
-  const heading = document.createElement("h2");
+  const heading = document.createElement("button");
   heading.id = "pairhiChatHeading";
+  heading.type = "button";
+  heading.className = "pairhi-chat-profile-button";
   heading.textContent = "Messages";
+
+  heading.title = "Tap to view this member's profile";
+
+  heading.addEventListener("click", () => {
+    if (activeChatMatchId) {
+      openMatchedProfile(activeChatMatchId);
+    }
+  });
 
   const close = document.createElement("button");
   close.type = "button";
   close.className = "pairhi-close";
   close.textContent = "×";
   close.setAttribute("aria-label", "Close chat");
-
   close.addEventListener("click", () => dialog.close());
 
   header.append(heading, close);
@@ -831,7 +996,6 @@ function formatMessageTime(value) {
   if (!value) return "";
 
   const date = new Date(value);
-
   if (Number.isNaN(date.getTime())) return "";
 
   return date.toLocaleString([], {
@@ -844,18 +1008,14 @@ function formatMessageTime(value) {
 
 function renderChatMessages(rows) {
   const container = discovery$("pairhiChatMessages");
-
   if (!container) return;
 
   container.replaceChildren();
 
   if (!rows || rows.length === 0) {
     const empty = document.createElement("p");
-    empty.textContent =
-      "This is the beginning of your conversation. Say hello!";
-    empty.style.cssText =
-      "color:#766d73;text-align:center;font-size:13px;margin:auto";
-
+    empty.textContent = "This is the beginning of your conversation. Say hello!";
+    empty.style.cssText = "color:#766d73;text-align:center;font-size:13px;margin:auto";
     container.appendChild(empty);
     return;
   }
@@ -889,14 +1049,13 @@ async function loadPairHiMessages(matchId) {
   if (!discoveryUser) return;
 
   const status = discovery$("pairhiChatStatus");
-
   if (status) status.textContent = "Loading conversation...";
 
   const { data, error } = await supabaseClient
     .from("messages")
     .select("id,match_id,sender_id,content,created_at")
     .eq("match_id", matchId)
-       .order("created_at", { ascending: true });
+    .order("created_at", { ascending: true });
 
   if (error) throw error;
 
@@ -919,15 +1078,15 @@ async function openPairHiChat(matchId) {
   const dialog = createChatDialog();
 
   stopChatRealtime();
-
   activeChatMatchId = matchId;
 
   const heading = discovery$("pairhiChatHeading");
 
   if (heading) {
     heading.textContent =
-      "Chat with " +
-      safeText(record.profile.display_name, "PairHi Member");
+      safeText(record.profile.display_name, "PairHi Member") +
+      (record.profile.age ? ", " + record.profile.age : "");
+    heading.title = "Tap here to view this member's profile";
   }
 
   const input = discovery$("pairhiChatInput");
@@ -965,11 +1124,7 @@ async function openPairHiChat(matchId) {
     console.error("PairHi chat loading error:", error);
 
     const status = discovery$("pairhiChatStatus");
-
-    if (status) {
-      status.textContent =
-        "Could not load messages: " + error.message;
-    }
+    if (status) status.textContent = "Could not load messages: " + error.message;
   }
 }
 
@@ -983,26 +1138,19 @@ async function sendPairHiMessage(event) {
   const form = discovery$("pairhiChatForm");
   const status = discovery$("pairhiChatStatus");
 
-  if (!matchId || !discoveryUser || !input || !form) {
-    return;
-  }
+  if (!matchId || !discoveryUser || !input || !form) return;
 
   const content = input.value.trim();
-
   if (!content) return;
 
   if (content.length > 2000) {
-    if (status) {
-      status.textContent =
-        "Please keep your message under 2,000 characters.";
-    }
+    if (status) status.textContent = "Please keep your message under 2,000 characters.";
     return;
   }
 
   chatLoading = true;
 
   const sendButton = form.querySelector('button[type="submit"]');
-
   if (sendButton) sendButton.disabled = true;
 
   if (status) status.textContent = "Sending message...";
@@ -1022,30 +1170,26 @@ async function sendPairHiMessage(event) {
 
     await loadPairHiMessages(matchId);
 
+    /* Refresh inbox so the latest message appears there. */
+    await loadPairHiInbox();
+
   } catch (error) {
     console.error("PairHi message sending error:", error);
-
-    if (status) {
-      status.textContent =
-        "Message could not be sent: " + error.message;
-    }
+    if (status) status.textContent = "Message could not be sent: " + error.message;
 
   } finally {
     chatLoading = false;
-
     if (sendButton) sendButton.disabled = false;
-
     if (input) input.focus();
   }
 }
 
 /* =====================================================
-   MATCH DISPLAY
+   MATCH DISPLAY ON DISCOVERY
 ===================================================== */
 
 function createMatchSection() {
   let section = discovery$("pairhiMatches");
-
   if (section) return section;
 
   section = document.createElement("section");
@@ -1093,7 +1237,6 @@ function createMatchButton(label, action, matchId, primary) {
 
 function showMatchSection(profiles) {
   const section = createMatchSection();
-
   if (!section) return;
 
   section.replaceChildren();
@@ -1107,14 +1250,12 @@ function showMatchSection(profiles) {
 
   const heading = document.createElement("h2");
   heading.textContent = "♥ Your mutual matches";
-  heading.style.cssText =
-    "color:#8f3658;margin:0 0 10px;font-size:22px";
+  heading.style.cssText = "color:#a52d61;margin:0 0 10px;font-size:22px";
 
   const description = document.createElement("p");
   description.textContent =
-    "Open a profile or start a private conversation with your match.";
-  description.style.cssText =
-    "color:#766d73;margin:0 0 15px;font-size:14px";
+    "Your matches also appear automatically in Messages. Open a profile or start a conversation.";
+  description.style.cssText = "color:#766d73;margin:0 0 15px;font-size:14px";
 
   section.append(heading, description);
 
@@ -1126,10 +1267,8 @@ function showMatchSection(profiles) {
 
     const avatar = document.createElement("div");
     avatar.className = "pairhi-match-avatar";
-
     avatar.style.cssText =
-      "display:flex;align-items:center;justify-content:center;" +
-      "font-size:20px;font-weight:bold;color:#8f3658";
+      "display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:bold;color:#a52d61";
 
     avatar.textContent =
       safeText(member.display_name, "P").charAt(0).toUpperCase();
@@ -1138,7 +1277,6 @@ function showMatchSection(profiles) {
     details.className = "pairhi-match-details";
 
     const name = document.createElement("strong");
-
     name.textContent =
       safeText(member.display_name, "PairHi Member") +
       (member.age ? ", " + member.age : "");
@@ -1163,36 +1301,22 @@ function showMatchSection(profiles) {
         .from("profile-photos")
         .createSignedUrl(member.photo_url, 3600)
         .then(({ data, error }) => {
-          if (!error && data && data.signedUrl) {
+          if (!error && data?.signedUrl) {
             const image = document.createElement("img");
-
             image.className = "pairhi-match-avatar";
             image.src = data.signedUrl;
             image.alt = "Matched member";
             image.loading = "lazy";
-
-            image.style.cssText =
-              "display:block !important;flex:0 0 48px !important;" +
-              "width:48px !important;height:48px !important;" +
-              "min-width:48px !important;min-height:48px !important;" +
-              "max-width:48px !important;max-height:48px !important;" +
-              "aspect-ratio:1/1 !important;object-fit:cover !important;" +
-              "border-radius:50% !important;overflow:hidden !important;";
-
             avatar.replaceWith(image);
           }
         })
-        .catch(error => {
-          console.warn("Match photo error:", error);
-        });
+        .catch(error => console.warn("Match photo error:", error));
     }
   });
 }
 
-/* Match button actions use event delegation. */
 document.addEventListener("click", event => {
   const button = event.target.closest("[data-match-action]");
-
   if (!button) return;
 
   const matchId = button.dataset.matchId;
@@ -1206,7 +1330,7 @@ document.addEventListener("click", event => {
 });
 
 /* =====================================================
-   LOAD MY MUTUAL MATCHES
+   LOAD MUTUAL MATCHES
 ===================================================== */
 
 async function loadMyMatches(userId) {
@@ -1214,10 +1338,7 @@ async function loadMyMatches(userId) {
     await supabaseClient
       .from("matches")
       .select("id,user1_id,user2_id,created_at")
-      .or(
-        "user1_id.eq." + userId +
-        ",user2_id.eq." + userId
-      );
+      .or("user1_id.eq." + userId + ",user2_id.eq." + userId);
 
   if (matchError) throw matchError;
 
@@ -1225,9 +1346,7 @@ async function loadMyMatches(userId) {
 
   discoveryMatchedIds = new Set(
     matchRows.map(match =>
-      match.user1_id === userId
-        ? match.user2_id
-        : match.user1_id
+      match.user1_id === userId ? match.user2_id : match.user1_id
     )
   );
 
@@ -1256,12 +1375,9 @@ async function loadMyMatches(userId) {
 
   matchRows.forEach(match => {
     const otherId =
-      match.user1_id === userId
-        ? match.user2_id
-        : match.user1_id;
+      match.user1_id === userId ? match.user2_id : match.user1_id;
 
     const profile = profileMap.get(otherId);
-
     if (!profile) return;
 
     discoveryMatchRecords.set(match.id, {
@@ -1281,26 +1397,27 @@ async function loadMyMatches(userId) {
 }
 
 /* =====================================================
-   PAIRHI MESSAGES INBOX
-   Uses existing matches and messages tables.
+   AUTOMATIC MESSAGES INBOX
+   Every mutual match appears here, even with zero messages.
 ===================================================== */
 
 async function loadPairHiInbox() {
   const inbox = discovery$("messagesInbox");
-
   if (!inbox) {
     console.warn("PairHi: messagesInbox container not found.");
     return;
   }
 
+  addPairHiDialogStyles();
   inbox.replaceChildren();
 
   const heading = document.createElement("h2");
-  heading.textContent = "Your conversations";
+  heading.className = "pairhi-inbox-heading";
+  heading.textContent = "Messages";
 
   const intro = document.createElement("p");
-  intro.textContent =
-    "Your private conversations with mutual matches.";
+  intro.className = "pairhi-inbox-intro";
+  intro.textContent = "Your mutual matches and private conversations.";
 
   inbox.append(heading, intro);
 
@@ -1311,7 +1428,8 @@ async function loadPairHiInbox() {
     if (sessionError) throw sessionError;
 
     if (!sessionData.session) {
-      const empty = document.createElement("p");
+      const empty = document.createElement("div");
+      empty.className = "pairhi-inbox-empty";
       empty.textContent = "Please log in to view your messages.";
       inbox.appendChild(empty);
       return;
@@ -1319,20 +1437,21 @@ async function loadPairHiInbox() {
 
     discoveryUser = sessionData.session.user;
 
+    /* Load all existing mutual matches first. */
     const matches = await loadMyMatches(discoveryUser.id);
 
     if (!matches || matches.length === 0) {
       const empty = document.createElement("div");
       empty.className = "pairhi-inbox-empty";
       empty.textContent =
-        "No mutual matches yet. When you match with someone, your conversations will appear here.";
-
+        "No mutual matches yet. When someone becomes your mutual match, their conversation will automatically appear here.";
       inbox.appendChild(empty);
       return;
     }
 
     const matchIds = matches.map(match => match.id);
 
+    /* Existing messages table only; no new table is created. */
     const { data: messageRows, error: messagesError } =
       await supabaseClient
         .from("messages")
@@ -1350,66 +1469,82 @@ async function loadPairHiInbox() {
       }
     });
 
-    const list = document.createElement("div");
-    list.className = "pairhi-inbox-list";
-
     const conversations = [];
 
     matches.forEach(match => {
       const record = discoveryMatchRecords.get(match.id);
-
       if (!record || !record.profile) return;
+
+      const latestMessage = latestMessages.get(match.id) || null;
 
       conversations.push({
         matchId: match.id,
         profile: record.profile,
-        message: latestMessages.get(match.id) || null,
-        createdAt:
-          latestMessages.get(match.id)?.created_at ||
-          match.created_at
+        message: latestMessage,
+        createdAt: latestMessage?.created_at || match.created_at
       });
     });
 
-    conversations.sort((a, b) => {
-      return new Date(b.createdAt || 0) -
-        new Date(a.createdAt || 0);
-    });
+    conversations.sort((a, b) =>
+      new Date(b.createdAt || 0) - new Date(a.createdAt || 0)
+    );
 
     if (conversations.length === 0) {
-      const empty = document.createElement("p");
-      empty.textContent = "No conversations are available.";
+      const empty = document.createElement("div");
+      empty.className = "pairhi-inbox-empty";
+      empty.textContent = "Your matched conversations are not available right now.";
       inbox.appendChild(empty);
       return;
     }
+
+    const list = document.createElement("div");
+    list.className = "pairhi-inbox-list";
 
     conversations.forEach(conversation => {
       const profile = conversation.profile;
       const message = conversation.message;
 
-      const card = document.createElement("button");
-      card.type = "button";
+      const card = document.createElement("div");
       card.className = "pairhi-inbox-card";
-      card.dataset.matchId = conversation.matchId;
 
-      const avatar = document.createElement("div");
-      avatar.className = "pairhi-inbox-avatar";
-      avatar.textContent =
-        safeText(profile.display_name, "P")
-          .charAt(0)
-          .toUpperCase();
+      /* Profile photo is a separate clickable control. */
+      const avatarButton = document.createElement("button");
+      avatarButton.type = "button";
+      avatarButton.className = "pairhi-inbox-profile-button";
+      avatarButton.title = "View profile";
+      avatarButton.setAttribute(
+        "aria-label",
+        "View " + safeText(profile.display_name, "member") + "'s profile"
+      );
+
+      avatarButton.textContent =
+        safeText(profile.display_name, "P").charAt(0).toUpperCase();
+
+      avatarButton.addEventListener("click", () => {
+        openMatchedProfile(conversation.matchId);
+      });
 
       const details = document.createElement("div");
       details.className = "pairhi-inbox-details";
 
-      const name = document.createElement("strong");
+      /* Tapping the member's name opens their profile. */
+      const name = document.createElement("button");
+      name.type = "button";
+      name.className = "pairhi-inbox-name";
       name.textContent =
         safeText(profile.display_name, "PairHi Member") +
         (profile.age ? ", " + profile.age : "");
+      name.title = "Tap to view profile";
+
+      name.addEventListener("click", () => {
+        openMatchedProfile(conversation.matchId);
+      });
 
       const preview = document.createElement("span");
+      preview.className = "pairhi-inbox-preview";
 
       if (!message) {
-        preview.textContent = "Start your conversation";
+        preview.textContent = "♥ You're matched! Start a conversation.";
       } else {
         preview.textContent =
           (message.sender_id === discoveryUser.id ? "You: " : "") +
@@ -1417,12 +1552,23 @@ async function loadPairHiInbox() {
       }
 
       const time = document.createElement("small");
+      time.className = "pairhi-inbox-time";
       time.textContent = message
         ? formatMessageTime(message.created_at)
-        : formatMessageTime(conversation.createdAt);
+        : "New match";
 
       details.append(name, preview, time);
-      card.append(avatar, details);
+
+      /* Tapping this button opens the private chat. */
+      const openButton = document.createElement("button");
+      openButton.type = "button";
+      openButton.className = "pairhi-inbox-open";
+      openButton.textContent = "Chat";
+      openButton.addEventListener("click", () => {
+        openPairHiChat(conversation.matchId);
+      });
+
+      card.append(avatarButton, details, openButton);
       list.appendChild(card);
 
       if (profile.photo_url) {
@@ -1432,21 +1578,14 @@ async function loadPairHiInbox() {
           .then(({ data, error }) => {
             if (!error && data?.signedUrl) {
               const image = document.createElement("img");
-              image.className = "pairhi-inbox-avatar";
               image.src = data.signedUrl;
               image.alt = "Profile photo";
               image.loading = "lazy";
-              avatar.replaceWith(image);
+              avatarButton.replaceChildren(image);
             }
           })
-          .catch(error => {
-            console.warn("Inbox photo error:", error);
-          });
+          .catch(error => console.warn("Inbox photo error:", error));
       }
-
-      card.addEventListener("click", () => {
-        openPairHiChat(conversation.matchId);
-      });
     });
 
     inbox.appendChild(list);
@@ -1454,9 +1593,9 @@ async function loadPairHiInbox() {
   } catch (error) {
     console.error("PairHi inbox error:", error);
 
-    const errorMessage = document.createElement("p");
-    errorMessage.textContent =
-      "Could not load your messages: " + error.message;
+    const errorMessage = document.createElement("div");
+    errorMessage.className = "pairhi-inbox-empty";
+    errorMessage.textContent = "Could not load your messages: " + error.message;
 
     inbox.appendChild(errorMessage);
   }
@@ -1490,12 +1629,9 @@ async function loadDiscovery() {
       discoveryMatchedIds = new Set();
       discoveryMatchRecords = new Map();
       discoveryBlockedIds = new Set();
+
       showMatchSection([]);
-
-      discoveryMessage(
-        "Please log in to discover approved PairHi members."
-      );
-
+      discoveryMessage("Please log in to discover approved PairHi members.");
       return;
     }
 
@@ -1512,48 +1648,38 @@ async function loadDiscovery() {
     if (profileError) throw profileError;
 
     if (!myProfile) {
-      discoveryMessage(
-        "Please complete your PairHi profile first."
-      );
+      discoveryMessage("Please complete your PairHi profile first.");
       return;
     }
 
     if (myProfile.verification_status !== "approved") {
       discoveryMessage(
-        "Your profile is awaiting administrator approval. " +
-        "Discovery will become available after approval."
+        "Your profile is awaiting administrator approval. Discovery will become available after approval."
       );
       return;
     }
 
+    /* Refresh matches so newly matched profiles are immediately known. */
     await loadMyMatches(user.id);
 
     const { data: blockedRows, error: blockedError } =
       await supabaseClient.rpc("pairhi_get_blocked_user_ids");
-         if (blockedError) throw blockedError;
+
+    if (blockedError) throw blockedError;
 
     discoveryBlockedIds = new Set(
       (blockedRows || []).map(row => row.blocked_user_id)
     );
 
-    if (
-      !myProfile.age ||
-      !myProfile.gender ||
-      !myProfile.preferred_gender
-    ) {
-      discoveryMessage(
-        "Please complete your age and gender preferences in My Profile."
-      );
+    if (!myProfile.age || !myProfile.gender || !myProfile.preferred_gender) {
+      discoveryMessage("Please complete your age and gender preferences in My Profile.");
       return;
     }
 
-    const cityToUse =
-      myProfile.preferred_city || myProfile.city;
+    const cityToUse = myProfile.preferred_city || myProfile.city;
 
     if (!cityToUse) {
-      discoveryMessage(
-        "Please add your city or preferred city in My Profile."
-      );
+      discoveryMessage("Please add your city or preferred city in My Profile.");
       return;
     }
 
@@ -1587,13 +1713,8 @@ async function loadDiscovery() {
 
     if (passesError) throw passesError;
 
-    const alreadyLiked = new Set(
-      (likes || []).map(item => item.liked_user_id)
-    );
-
-    const alreadyPassed = new Set(
-      (passes || []).map(item => item.passed_user_id)
-    );
+    const alreadyLiked = new Set((likes || []).map(item => item.liked_user_id));
+    const alreadyPassed = new Set((passes || []).map(item => item.passed_user_id));
 
     const intentFilter = discovery$("intentFilter");
 
@@ -1614,45 +1735,19 @@ async function loadDiscovery() {
       if (
         member.age < (myProfile.min_age_preference || 18) ||
         member.age > (myProfile.max_age_preference || 100)
-      ) {
-        return false;
-      }
+      ) return false;
 
-      if (
-        !compatibleGender(
-          myProfile.preferred_gender,
-          member.gender
-        )
-      ) {
-        return false;
-      }
-
-      if (
-        !compatibleGender(
-          member.preferred_gender,
-          myProfile.gender
-        )
-      ) {
-        return false;
-      }
+      if (!compatibleGender(myProfile.preferred_gender, member.gender)) return false;
+      if (!compatibleGender(member.preferred_gender, myProfile.gender)) return false;
 
       if (
         myProfile.age < (member.min_age_preference || 18) ||
         myProfile.age > (member.max_age_preference || 100)
-      ) {
-        return false;
-      }
+      ) return false;
 
-      if (normalizeCity(member.city) !== targetCity) {
-        return false;
-      }
+      if (normalizeCity(member.city) !== targetCity) return false;
 
-      if (
-        selectedGoal &&
-        member.relationship_goal !== selectedGoal
-      ) {
-        return false;
-      }
+      if (selectedGoal && member.relationship_goal !== selectedGoal) return false;
 
       return true;
     });
@@ -1662,14 +1757,11 @@ async function loadDiscovery() {
 
       if (discoveryMatchedIds.size > 0) {
         discoveryMessage(
-          "Your mutual matches are shown above. " +
-          "There are no new compatible profiles to discover right now."
+          "Your mutual matches are shown above and in Messages. There are no new compatible profiles to discover right now."
         );
       } else {
         discoveryMessage(
-          "No compatible approved members are available in " +
-          cityToUse +
-          " yet."
+          "No compatible approved members are available in " + cityToUse + " yet."
         );
       }
 
@@ -1677,18 +1769,14 @@ async function loadDiscovery() {
     }
 
     discoveryMessage(
-      discoveryCandidates.length +
-      " compatible approved member(s) found."
+      discoveryCandidates.length + " compatible approved member(s) found."
     );
 
     await renderRealCandidate();
 
   } catch (error) {
     console.error("PairHi discovery error:", error);
-
-    discoveryMessage(
-      "Discovery error: " + error.message
-    );
+    discoveryMessage("Discovery error: " + error.message);
 
   } finally {
     discoveryLoading = false;
@@ -1704,8 +1792,7 @@ async function renderRealCandidate() {
     hideDiscoveryCard();
 
     discoveryMessage(
-      "You've viewed all currently available compatible profiles. " +
-      "Your mutual matches are shown above."
+      "You've viewed all currently available compatible profiles. Your mutual matches are shown above and in Messages."
     );
 
     return;
@@ -1717,9 +1804,7 @@ async function renderRealCandidate() {
   const photo = discovery$("photo");
 
   if (!card || !photo) {
-    discoveryMessage(
-      "The discovery card is missing from index.html."
-    );
+    discoveryMessage("The discovery card is missing from index.html.");
     return;
   }
 
@@ -1735,47 +1820,36 @@ async function renderRealCandidate() {
 
   if (personName) {
     personName.textContent =
-      (member.display_name || "PairHi Member") +
-      ", " + member.age;
+      (member.display_name || "PairHi Member") + ", " + member.age;
   }
 
   if (personLocation) {
-    personLocation.textContent =
-      (member.city || "") + " · India";
+    personLocation.textContent = (member.city || "") + " · India";
   }
 
   if (personIntent) {
-    personIntent.textContent =
-      relationshipGoalLabel(member.relationship_goal);
+    personIntent.textContent = relationshipGoalLabel(member.relationship_goal);
   }
 
   if (personBio) {
-    personBio.textContent =
-      member.bio || "This member has not added a bio yet.";
+    personBio.textContent = member.bio || "This member has not added a bio yet.";
   }
 
   if (personTags) personTags.replaceChildren();
 
-  if (compatScore) {
-    compatScore.textContent = "Preferences compatible";
-  }
+  if (compatScore) compatScore.textContent = "Preferences compatible";
 
   if (photoNumber) {
     photoNumber.textContent =
-      (discoveryIndex + 1) +
-      " / " +
-      discoveryCandidates.length;
+      (discoveryIndex + 1) + " / " + discoveryCandidates.length;
   }
 
   const badge = photo.querySelector(".verified");
-
   if (badge) badge.textContent = "✓ Approved member";
 
-  photo.style.background =
-    "linear-gradient(140deg,#d8a6b8,#92566b)";
+  photo.style.background = "linear-gradient(140deg,#f0b6ce,#d52d70)";
 
   const oldImage = photo.querySelector("img");
-
   if (oldImage) oldImage.remove();
 
   if (member.photo_url) {
@@ -1784,9 +1858,8 @@ async function renderRealCandidate() {
         .from("profile-photos")
         .createSignedUrl(member.photo_url, 3600);
 
-      if (!error && data && data.signedUrl) {
+      if (!error && data?.signedUrl) {
         const image = document.createElement("img");
-
         image.src = data.signedUrl;
         image.alt = "Approved member profile photograph";
         image.loading = "lazy";
@@ -1796,7 +1869,6 @@ async function renderRealCandidate() {
           "object-fit:cover;border-radius:inherit;z-index:1";
 
         if (badge) badge.style.zIndex = "2";
-
         if (photoNumber) photoNumber.style.zIndex = "2";
 
         photo.appendChild(image);
@@ -1807,6 +1879,7 @@ async function renderRealCandidate() {
   }
 
   const cardActions = card.querySelector(".actions");
+
   if (cardActions) {
     const oldSafetyActions = discovery$("pairhiDiscoverySafetyActions");
     if (oldSafetyActions) oldSafetyActions.remove();
@@ -1815,6 +1888,7 @@ async function renderRealCandidate() {
     safetyActions.id = "pairhiDiscoverySafetyActions";
     safetyActions.className = "pairhi-safety-actions";
     safetyActions.style.cssText = "justify-content:center;margin-top:10px";
+
     safetyActions.append(
       createSafetyButton("Report profile", "pairhi-safety-button", () => {
         openPairHiReport(member.id);
@@ -1823,6 +1897,7 @@ async function renderRealCandidate() {
         blockPairHiMember(member.id);
       })
     );
+
     cardActions.insertAdjacentElement("afterend", safetyActions);
   }
 
@@ -1868,13 +1943,15 @@ async function saveDiscoveryAction(action) {
 
       if (discoveryMatchedIds.has(member.id)) {
         discoveryMessage(
-          "♥ It's a mutual match! You can now open the profile " +
-          "or start messaging from Your mutual matches."
+          "♥ It's a mutual match! This member has been added to Messages automatically. Open Messages to chat or tap their name to view their profile."
         );
+
+        /* Refresh inbox immediately after a mutual match. */
+        await loadPairHiInbox();
+
       } else {
         discoveryMessage(
-          "Your interest has been saved. If this member also likes you, " +
-          "a mutual match will appear above."
+          "Your interest has been saved. If this member also likes you, your mutual match will appear automatically in Messages."
         );
       }
 
@@ -1894,15 +1971,11 @@ async function saveDiscoveryAction(action) {
     }
 
     discoveryIndex++;
-
     await renderRealCandidate();
 
   } catch (error) {
     console.error("PairHi action error:", error);
-
-    discoveryMessage(
-      "Could not save your decision: " + error.message
-    );
+    discoveryMessage("Could not save your decision: " + error.message);
 
   } finally {
     discoveryBusy = false;
@@ -1982,10 +2055,17 @@ if (discoveryFooter) {
 supabaseClient.auth.onAuthStateChange(() => {
   stopChatRealtime();
 
-  window.setTimeout(() => {
-    loadDiscovery();
+  window.setTimeout(async () => {
+    await loadDiscovery();
+
+    if (discoveryUser) {
+      await loadPairHiInbox();
+    }
   }, 0);
 });
 
-/* Initial discovery load */
+/* =====================================================
+   INITIAL LOAD
+===================================================== */
+
 loadDiscovery();
