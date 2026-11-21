@@ -23,6 +23,8 @@ const ALLOWED_GOALS = [
   "marriage_oriented_serious_relationship"
 ];
 
+const MAX_PROFILE_PHOTOS = 6;
+
 function goalValue(value) {
   const goal = String(value || "").trim();
 
@@ -56,6 +58,183 @@ function showProfileMessage(message) {
 }
 
 // ======================================
+// PHOTO GALLERY HELPERS
+// ======================================
+
+function isPhotoFile(file) {
+  return Boolean(
+    file &&
+    file.name &&
+    /\.(jpg|jpeg|png|webp)$/i.test(file.name)
+  );
+}
+
+async function getMyPhotoFiles(userId) {
+  const { data, error } = await supabaseClient.storage
+    .from("profile-photos")
+    .list(userId, {
+      limit: 100,
+      sortBy: {
+        column: "created_at",
+        order: "desc"
+      }
+    });
+
+  if (error) throw error;
+
+  return (data || []).filter(isPhotoFile);
+}
+
+// ======================================
+// PHOTO VIEWER
+// ======================================
+
+function openPhotoViewer(imageUrl) {
+  let viewer = $("pairhiPhotoViewer");
+
+  if (!viewer) {
+    viewer = document.createElement("div");
+    viewer.id = "pairhiPhotoViewer";
+
+    viewer.style.cssText =
+      "position:fixed;inset:0;z-index:99999;" +
+      "background:rgba(0,0,0,.92);display:flex;" +
+      "align-items:center;justify-content:center;" +
+      "padding:18px;";
+
+    const closeButton = document.createElement("button");
+    closeButton.type = "button";
+    closeButton.textContent = "✕";
+    closeButton.setAttribute("aria-label", "Close photo");
+
+    closeButton.style.cssText =
+      "position:absolute;top:15px;right:15px;" +
+      "width:42px;height:42px;border:0;" +
+      "border-radius:50%;background:#fff;" +
+      "color:#222;font-size:22px;cursor:pointer;";
+
+    const image = document.createElement("img");
+    image.id = "pairhiPhotoViewerImage";
+    image.alt = "Full size profile photograph";
+
+    image.style.cssText =
+      "display:block;max-width:100%;max-height:85vh;" +
+      "object-fit:contain;border-radius:8px;";
+
+    closeButton.addEventListener("click", () => {
+      viewer.style.display = "none";
+    });
+
+    viewer.addEventListener("click", event => {
+      if (event.target === viewer) {
+        viewer.style.display = "none";
+      }
+    });
+
+    viewer.appendChild(closeButton);
+    viewer.appendChild(image);
+    document.body.appendChild(viewer);
+  }
+
+  $("pairhiPhotoViewerImage").src = imageUrl;
+  viewer.style.display = "flex";
+}
+
+// ======================================
+// UPDATE MAIN PROFILE PHOTO
+// ======================================
+
+async function setMainProfilePhoto(userId, photoPath) {
+  const { data, error } = await supabaseClient
+    .from("profiles")
+    .update({
+      photo_url: photoPath
+    })
+    .eq("id", userId)
+    .select("id, photo_url")
+    .maybeSingle();
+
+  if (error) throw error;
+
+  if (!data) {
+    throw new Error(
+      "Could not update your main photo. Please check your profile permissions."
+    );
+  }
+
+  return data;
+}
+
+// ======================================
+// DELETE PROFILE PHOTO
+// ======================================
+
+async function deleteMyProfilePhoto(userId, photoPath, currentMainPhoto) {
+  try {
+    const files = await getMyPhotoFiles(userId);
+
+    const photoExists = files.some(
+      file => userId + "/" + file.name === photoPath
+    );
+
+    if (!photoExists) {
+      throw new Error("This photograph could not be found.");
+    }
+
+    if (files.length <= 1) {
+      throw new Error(
+        "You must keep at least one profile photograph. Upload another photo before deleting this one."
+      );
+    }
+
+    // If deleting the main photo, make another photo the main photo first.
+    if (photoPath === currentMainPhoto) {
+      const replacement = files.find(
+        file => userId + "/" + file.name !== photoPath
+      );
+
+      if (!replacement) {
+        throw new Error("No replacement main photo is available.");
+      }
+
+      const replacementPath =
+        userId + "/" + replacement.name;
+
+      await setMainProfilePhoto(userId, replacementPath);
+    }
+
+    const { error } = await supabaseClient.storage
+      .from("profile-photos")
+      .remove([photoPath]);
+
+    if (error) throw error;
+
+    showProfileMessage("Photograph deleted successfully.");
+
+    const { data: profile, error: profileError } =
+      await supabaseClient
+        .from("profiles")
+        .select("photo_url")
+        .eq("id", userId)
+        .single();
+
+    if (profileError) throw profileError;
+
+    await loadMyPhotoGallery(
+      userId,
+      profile.photo_url || ""
+    );
+
+  } catch (error) {
+    console.error("PAIRHI PHOTO DELETE ERROR:", error);
+
+    showProfileMessage(
+      "Could not delete photograph: " + error.message
+    );
+  }
+}
+
+// ======================================
 // PRIVATE PROFILE PHOTO GALLERY
 // ======================================
 
@@ -72,27 +251,7 @@ async function loadMyPhotoGallery(userId, mainPhotoPath) {
   }
 
   try {
-    // List files only inside the signed-in user's own folder.
-    const { data: files, error: listError } =
-      await supabaseClient.storage
-        .from("profile-photos")
-        .list(userId, {
-          limit: 100,
-          sortBy: {
-            column: "created_at",
-            order: "desc"
-          }
-        });
-
-    if (listError) throw listError;
-
-    const photoFiles = (files || []).filter(file => {
-      return (
-        file &&
-        file.name &&
-        /\.(jpg|jpeg|png|webp)$/i.test(file.name)
-      );
-    });
+    const photoFiles = await getMyPhotoFiles(userId);
 
     if (photoFiles.length === 0) {
       if (message) {
@@ -107,7 +266,6 @@ async function loadMyPhotoGallery(userId, mainPhotoPath) {
       path: userId + "/" + file.name
     }));
 
-    // Put the current main profile photo first.
     photos.sort((a, b) => {
       if (a.path === mainPhotoPath) return -1;
       if (b.path === mainPhotoPath) return 1;
@@ -117,10 +275,9 @@ async function loadMyPhotoGallery(userId, mainPhotoPath) {
     let displayedCount = 0;
 
     for (const photo of photos) {
-      const { data, error } =
-        await supabaseClient.storage
-          .from("profile-photos")
-          .createSignedUrl(photo.path, 3600);
+      const { data, error } = await supabaseClient.storage
+        .from("profile-photos")
+        .createSignedUrl(photo.path, 3600);
 
       if (error || !data || !data.signedUrl) {
         console.warn(
@@ -136,7 +293,16 @@ async function loadMyPhotoGallery(userId, mainPhotoPath) {
       item.style.cssText =
         "min-width:0;border:1px solid #eadfe3;" +
         "border-radius:10px;overflow:hidden;" +
-        "background:#fff;padding:5px;";
+        "background:#fff;padding:6px;";
+
+      // Photo thumbnail button.
+      const imageButton = document.createElement("button");
+      imageButton.type = "button";
+      imageButton.setAttribute("aria-label", "Open photograph");
+
+      imageButton.style.cssText =
+        "display:block;width:100%;padding:0;border:0;" +
+        "background:transparent;cursor:pointer;";
 
       const image = document.createElement("img");
 
@@ -148,40 +314,117 @@ async function loadMyPhotoGallery(userId, mainPhotoPath) {
         "display:block;width:100%;aspect-ratio:1/1;" +
         "object-fit:cover;border-radius:7px;";
 
-      item.appendChild(image);
+      imageButton.appendChild(image);
 
-      if (photo.path === mainPhotoPath) {
-        const label = document.createElement("div");
+      imageButton.addEventListener("click", () => {
+        openPhotoViewer(data.signedUrl);
+      });
 
-        label.textContent = "Main Profile Photo";
+      item.appendChild(imageButton);
 
-        label.style.cssText =
-          "font-size:11px;font-weight:700;" +
-          "color:#8f3658;text-align:center;" +
-          "padding:6px 2px 2px;";
+      // Photo label.
+      const label = document.createElement("div");
 
-        item.appendChild(label);
-      } else {
-        const label = document.createElement("div");
+      const isMainPhoto = photo.path === mainPhotoPath;
 
-        label.textContent = "Uploaded Photo";
+      label.textContent = isMainPhoto
+        ? "Main Profile Photo"
+        : "Uploaded Photo";
 
-        label.style.cssText =
-          "font-size:11px;color:#766d73;" +
-          "text-align:center;padding:6px 2px 2px;";
+      label.style.cssText =
+        "font-size:11px;font-weight:700;" +
+        "color:#8f3658;text-align:center;" +
+        "padding:7px 2px;";
 
-        item.appendChild(label);
+      item.appendChild(label);
+
+      // Make Main Photo button.
+      if (!isMainPhoto) {
+        const mainButton = document.createElement("button");
+
+        mainButton.type = "button";
+        mainButton.textContent = "Make Main Photo";
+
+        mainButton.style.cssText =
+          "display:block;width:100%;padding:8px 4px;" +
+          "margin:3px 0;border:0;border-radius:6px;" +
+          "background:#8f3658;color:white;" +
+          "font-size:11px;font-weight:700;cursor:pointer;";
+
+        mainButton.addEventListener("click", async () => {
+          if (!confirm("Make this your main profile photograph?")) {
+            return;
+          }
+
+          mainButton.disabled = true;
+          showProfileMessage("Updating your main photograph...");
+
+          try {
+            await setMainProfilePhoto(userId, photo.path);
+
+            await loadMyPhotoGallery(userId, photo.path);
+
+            showProfileMessage(
+              "Your main profile photograph has been changed successfully."
+            );
+
+          } catch (error) {
+            console.error("PAIRHI MAIN PHOTO ERROR:", error);
+
+            showProfileMessage(
+              "Could not change main photo: " + error.message
+            );
+
+            mainButton.disabled = false;
+          }
+        });
+
+        item.appendChild(mainButton);
       }
+
+      // Delete button.
+      const deleteButton = document.createElement("button");
+
+      deleteButton.type = "button";
+      deleteButton.textContent = "Delete Photo";
+
+      deleteButton.style.cssText =
+        "display:block;width:100%;padding:8px 4px;" +
+        "margin:3px 0;border:1px solid #d9534f;" +
+        "border-radius:6px;background:white;" +
+        "color:#c0392b;font-size:11px;" +
+        "font-weight:700;cursor:pointer;";
+
+      deleteButton.addEventListener("click", async () => {
+        const confirmed = confirm(
+          isMainPhoto
+            ? "You are deleting your main photo. Another uploaded photo will automatically become your main photo. Continue?"
+            : "Are you sure you want to permanently delete this photograph?"
+        );
+
+        if (!confirmed) return;
+
+        deleteButton.disabled = true;
+
+        await deleteMyProfilePhoto(
+          userId,
+          photo.path,
+          mainPhotoPath
+        );
+
+        deleteButton.disabled = false;
+      });
+
+      item.appendChild(deleteButton);
 
       gallery.appendChild(item);
       displayedCount++;
     }
 
     if (message) {
-      message.textContent = displayedCount
-        ? "Showing " + displayedCount +
-          " of your uploaded photographs."
-        : "Your photographs could not be displayed. Please refresh and try again.";
+      message.textContent =
+        "Showing " + displayedCount + " of your uploaded photographs. " +
+        "You can upload up to " + MAX_PROFILE_PHOTOS + " photos.";
     }
 
   } catch (error) {
@@ -521,8 +764,10 @@ async function openMemberProfile() {
     $("profilePhoto").value = "";
     $("profilePhoto").required = !profile.photo_url;
 
-    // Load every uploaded photo belonging to this account.
-    await loadMyPhotoGallery(user.id, profile.photo_url || "");
+    await loadMyPhotoGallery(
+      user.id,
+      profile.photo_url || ""
+    );
 
     if (profile.verification_status === "approved") {
       showProfileMessage(
@@ -686,7 +931,16 @@ if ($("editProfileForm")) {
       let photoPath =
         existingProfile.photo_url || "";
 
+      // Enforce the six-photo limit before uploading.
       if (photoFile) {
+        const existingPhotos = await getMyPhotoFiles(user.id);
+
+        if (existingPhotos.length >= MAX_PROFILE_PHOTOS) {
+          throw new Error(
+            "You have reached the maximum limit of 6 photographs. Please delete an existing photo before uploading another."
+          );
+        }
+
         const extension =
           photoFile.type === "image/png" ? "png" :
           photoFile.type === "image/webp" ? "webp" : "jpg";
@@ -749,7 +1003,6 @@ if ($("editProfileForm")) {
       photoInput.value = "";
       photoInput.required = false;
 
-      // Refresh the gallery after saving the profile.
       await loadMyPhotoGallery(user.id, photoPath);
 
       showProfileMessage(
