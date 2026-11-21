@@ -652,13 +652,23 @@ if ($("editProfileForm")) {
 
       showProfileMessage("Saving your profile details...");
 
-      const { error: updateError } =
-        await supabaseClient
-          .from("profiles")
-          .update(profileData)
-          .eq("id", user.id);
+      const { data: updatedProfile, error: updateError } =
+  await supabaseClient
+    .from("profiles")
+    .update(profileData)
+    .eq("id", user.id)
+    .select("id, education, occupation, marital_status, interests, lifestyle")
+    .maybeSingle();
 
-      if (updateError) throw updateError;
+if (updateError) throw updateError;
+
+if (!updatedProfile) {
+  throw new Error(
+    "Supabase did not update your profile. Please check your login and profile permissions."
+  );
+}
+
+console.log("PAIRHI SAVED PROFILE:", updatedProfile);
 
       showProfileMessage(
         "Your profile has been saved successfully. It will remain pending until reviewed and approved."
