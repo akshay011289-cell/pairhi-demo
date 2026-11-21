@@ -17,10 +17,6 @@ const supabaseClient = window.supabase.createClient(
 
 const $ = id => document.getElementById(id);
 
-// ======================================
-// RELATIONSHIP GOALS
-// ======================================
-
 const ALLOWED_GOALS = [
   "marriage",
   "serious_relationship",
@@ -49,10 +45,6 @@ function goalValue(value) {
     : "marriage";
 }
 
-// ======================================
-// MESSAGE HELPERS
-// ======================================
-
 function showMessage(message) {
   const messageBox = $("authMessage");
   if (messageBox) messageBox.textContent = message;
@@ -61,6 +53,145 @@ function showMessage(message) {
 function showProfileMessage(message) {
   const messageBox = $("profileMessage");
   if (messageBox) messageBox.textContent = message;
+}
+
+// ======================================
+// PRIVATE PROFILE PHOTO GALLERY
+// ======================================
+
+async function loadMyPhotoGallery(userId, mainPhotoPath) {
+  const gallery = $("myPhotoGallery");
+  const message = $("photoGalleryMessage");
+
+  if (!gallery) return;
+
+  gallery.replaceChildren();
+
+  if (message) {
+    message.textContent = "Loading your uploaded photographs...";
+  }
+
+  try {
+    // List files only inside the signed-in user's own folder.
+    const { data: files, error: listError } =
+      await supabaseClient.storage
+        .from("profile-photos")
+        .list(userId, {
+          limit: 100,
+          sortBy: {
+            column: "created_at",
+            order: "desc"
+          }
+        });
+
+    if (listError) throw listError;
+
+    const photoFiles = (files || []).filter(file => {
+      return (
+        file &&
+        file.name &&
+        /\.(jpg|jpeg|png|webp)$/i.test(file.name)
+      );
+    });
+
+    if (photoFiles.length === 0) {
+      if (message) {
+        message.textContent =
+          "You have not uploaded any photographs yet.";
+      }
+      return;
+    }
+
+    const photos = photoFiles.map(file => ({
+      name: file.name,
+      path: userId + "/" + file.name
+    }));
+
+    // Put the current main profile photo first.
+    photos.sort((a, b) => {
+      if (a.path === mainPhotoPath) return -1;
+      if (b.path === mainPhotoPath) return 1;
+      return 0;
+    });
+
+    let displayedCount = 0;
+
+    for (const photo of photos) {
+      const { data, error } =
+        await supabaseClient.storage
+          .from("profile-photos")
+          .createSignedUrl(photo.path, 3600);
+
+      if (error || !data || !data.signedUrl) {
+        console.warn(
+          "Could not create photo viewing link:",
+          photo.path,
+          error
+        );
+        continue;
+      }
+
+      const item = document.createElement("div");
+
+      item.style.cssText =
+        "min-width:0;border:1px solid #eadfe3;" +
+        "border-radius:10px;overflow:hidden;" +
+        "background:#fff;padding:5px;";
+
+      const image = document.createElement("img");
+
+      image.src = data.signedUrl;
+      image.alt = "My uploaded PairHi photograph";
+      image.loading = "lazy";
+
+      image.style.cssText =
+        "display:block;width:100%;aspect-ratio:1/1;" +
+        "object-fit:cover;border-radius:7px;";
+
+      item.appendChild(image);
+
+      if (photo.path === mainPhotoPath) {
+        const label = document.createElement("div");
+
+        label.textContent = "Main Profile Photo";
+
+        label.style.cssText =
+          "font-size:11px;font-weight:700;" +
+          "color:#8f3658;text-align:center;" +
+          "padding:6px 2px 2px;";
+
+        item.appendChild(label);
+      } else {
+        const label = document.createElement("div");
+
+        label.textContent = "Uploaded Photo";
+
+        label.style.cssText =
+          "font-size:11px;color:#766d73;" +
+          "text-align:center;padding:6px 2px 2px;";
+
+        item.appendChild(label);
+      }
+
+      gallery.appendChild(item);
+      displayedCount++;
+    }
+
+    if (message) {
+      message.textContent = displayedCount
+        ? "Showing " + displayedCount +
+          " of your uploaded photographs."
+        : "Your photographs could not be displayed. Please refresh and try again.";
+    }
+
+  } catch (error) {
+    console.error("PAIRHI PHOTO GALLERY ERROR:", error);
+
+    if (message) {
+      message.textContent =
+        "Could not load your photographs: " + error.message;
+    }
+  }
 }
 
 // ======================================
@@ -358,23 +489,12 @@ async function openMemberProfile() {
       throw new Error("Your profile record could not be found.");
     }
 
-    // Basic profile information.
-
-    $("profileName").value =
-      profile.display_name || "";
-
-    $("profileAge").value =
-      profile.age ?? "";
-
-    $("profileGender").value =
-      profile.gender || "";
-
+    $("profileName").value = profile.display_name || "";
+    $("profileAge").value = profile.age ?? "";
+    $("profileGender").value = profile.gender || "";
     $("profilePreferredGender").value =
       profile.preferred_gender || "";
-
-    $("profileCity").value =
-      profile.city || "";
-
+    $("profileCity").value = profile.city || "";
     $("profilePreferredCity").value =
       profile.preferred_city || "";
 
@@ -383,24 +503,12 @@ async function openMemberProfile() {
         ? profile.relationship_goal
         : "marriage";
 
-    // NEW PROFILE FIELDS.
-
-    $("profileEducation").value =
-      profile.education || "";
-
-    $("profileOccupation").value =
-      profile.occupation || "";
-
+    $("profileEducation").value = profile.education || "";
+    $("profileOccupation").value = profile.occupation || "";
     $("profileMaritalStatus").value =
       profile.marital_status || "";
-
-    $("profileInterests").value =
-      profile.interests || "";
-
-    $("profileLifestyle").value =
-      profile.lifestyle || "";
-
-    // Age preferences.
+    $("profileInterests").value = profile.interests || "";
+    $("profileLifestyle").value = profile.lifestyle || "";
 
     $("profileMinAge").value =
       profile.min_age_preference ?? 18;
@@ -408,15 +516,13 @@ async function openMemberProfile() {
     $("profileMaxAge").value =
       profile.max_age_preference ?? 60;
 
-    $("profileBio").value =
-      profile.bio || "";
-
-    // Photo.
+    $("profileBio").value = profile.bio || "";
 
     $("profilePhoto").value = "";
+    $("profilePhoto").required = !profile.photo_url;
 
-    $("profilePhoto").required =
-      !profile.photo_url;
+    // Load every uploaded photo belonging to this account.
+    await loadMyPhotoGallery(user.id, profile.photo_url || "");
 
     if (profile.verification_status === "approved") {
       showProfileMessage(
@@ -447,7 +553,6 @@ async function openMemberProfile() {
   }
 }
 
-// Make function available to the HTML button.
 window.openMemberProfile = openMemberProfile;
 
 // ======================================
@@ -473,49 +578,33 @@ if ($("editProfileForm")) {
         );
       }
 
-      // Read basic profile fields.
-
       const name = $("profileName").value.trim();
       const age = Number($("profileAge").value);
       const gender = $("profileGender").value;
       const preferredGender =
         $("profilePreferredGender").value;
-
       const city = $("profileCity").value.trim();
-
       const preferredCity =
         $("profilePreferredCity").value.trim();
-
       const goal = $("profileGoal").value;
-
       const minAge = Number($("profileMinAge").value);
       const maxAge = Number($("profileMaxAge").value);
-
       const bio = $("profileBio").value.trim();
-
-      // Read the five additional fields.
 
       const education =
         $("profileEducation").value.trim();
-
       const occupation =
         $("profileOccupation").value.trim();
-
       const maritalStatus =
         $("profileMaritalStatus").value;
-
       const interests =
         $("profileInterests").value.trim();
-
       const lifestyle =
         $("profileLifestyle").value.trim();
 
       const photoInput = $("profilePhoto");
-
       const photoFile =
         photoInput.files && photoInput.files[0];
-
-      // Validate required information.
 
       if (
         !name ||
@@ -565,8 +654,6 @@ if ($("editProfileForm")) {
         );
       }
 
-      // Validate photograph.
-
       if (photoFile) {
         const allowedTypes = [
           "image/jpeg",
@@ -587,8 +674,6 @@ if ($("editProfileForm")) {
         }
       }
 
-      // Read existing photo path.
-
       const { data: existingProfile, error: existingError } =
         await supabaseClient
           .from("profiles")
@@ -600,8 +685,6 @@ if ($("editProfileForm")) {
 
       let photoPath =
         existingProfile.photo_url || "";
-
-      // Upload a new photograph if selected.
 
       if (photoFile) {
         const extension =
@@ -624,9 +707,6 @@ if ($("editProfileForm")) {
         if (uploadError) throw uploadError;
       }
 
-      // Save profile information.
-      // Verification status remains administrator-controlled.
-
       const profileData = {
         display_name: name,
         age: age,
@@ -634,18 +714,14 @@ if ($("editProfileForm")) {
         preferred_gender: preferredGender,
         city: city,
         preferred_city: preferredCity || null,
-
         relationship_goal: goal,
-
         education: education || null,
         occupation: occupation || null,
         marital_status: maritalStatus || null,
         interests: interests || null,
         lifestyle: lifestyle || null,
-
         min_age_preference: minAge,
         max_age_preference: maxAge,
-
         bio: bio,
         photo_url: photoPath
       };
@@ -653,29 +729,32 @@ if ($("editProfileForm")) {
       showProfileMessage("Saving your profile details...");
 
       const { data: updatedProfile, error: updateError } =
-  await supabaseClient
-    .from("profiles")
-    .update(profileData)
-    .eq("id", user.id)
-    .select("id, education, occupation, marital_status, interests, lifestyle")
-    .maybeSingle();
+        await supabaseClient
+          .from("profiles")
+          .update(profileData)
+          .eq("id", user.id)
+          .select("id, education, occupation, marital_status, interests, lifestyle")
+          .maybeSingle();
 
-if (updateError) throw updateError;
+      if (updateError) throw updateError;
 
-if (!updatedProfile) {
-  throw new Error(
-    "Supabase did not update your profile. Please check your login and profile permissions."
-  );
-}
+      if (!updatedProfile) {
+        throw new Error(
+          "Supabase did not update your profile. Please check your login and profile permissions."
+        );
+      }
 
-console.log("PAIRHI SAVED PROFILE:", updatedProfile);
-
-      showProfileMessage(
-        "Your profile has been saved successfully. It will remain pending until reviewed and approved."
-      );
+      console.log("PAIRHI SAVED PROFILE:", updatedProfile);
 
       photoInput.value = "";
       photoInput.required = false;
+
+      // Refresh the gallery after saving the profile.
+      await loadMyPhotoGallery(user.id, photoPath);
+
+      showProfileMessage(
+        "Your profile has been saved successfully. Your photo gallery has been refreshed."
+      );
 
       setTimeout(() => {
         const editor = $("editProfileDialog");
