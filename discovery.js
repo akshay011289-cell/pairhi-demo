@@ -1,4 +1,3 @@
-
 /* =====================================================
    PAIRHI DISCOVERY, MUTUAL MATCHES, PROFILES AND CHAT
    Uses the existing Supabase database and RLS policies.
@@ -11,6 +10,7 @@ let discoveryBusy = false;
 let discoveryLoading = false;
 let discoveryMatchedIds = new Set();
 let discoveryMatchRecords = new Map();
+let discoveryBlockedIds = new Set();
 let activeChatChannel = null;
 let activeChatMatchId = null;
 let chatLoading = false;
@@ -316,6 +316,58 @@ function addPairHiDialogStyles() {
       min-height:18px;
     }
 
+    .pairhi-safety-actions {
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      margin-top:12px;
+    }
+
+    .pairhi-safety-button {
+      border:1px solid #eadfe3;
+      border-radius:9px;
+      padding:9px 12px;
+      min-height:38px;
+      background:#fff;
+      color:#8f3658;
+      font-size:13px;
+      font-weight:600;
+      cursor:pointer;
+    }
+
+    .pairhi-danger-button {
+      border-color:#d9a5b3;
+      color:#9b263f;
+    }
+
+    .pairhi-report-field {
+      margin:0 0 14px;
+    }
+
+    .pairhi-report-field label {
+      display:block;
+      margin-bottom:6px;
+      font-size:14px;
+      font-weight:600;
+    }
+
+    .pairhi-report-field select,
+    .pairhi-report-field textarea {
+      width:100%;
+      box-sizing:border-box;
+      border:1px solid #eadfe3;
+      border-radius:9px;
+      padding:11px;
+      font:inherit;
+      background:#fff;
+      color:#29232a;
+    }
+
+    .pairhi-report-field textarea {
+      min-height:100px;
+      resize:vertical;
+    }
+
     @media(max-width:420px) {
       .pairhi-dialog-inner {padding:15px}
       .pairhi-match-card {align-items:flex-start}
@@ -324,6 +376,222 @@ function addPairHiDialogStyles() {
   `;
 
   document.head.appendChild(style);
+}
+
+/* =====================================================
+   MEMBER SAFETY: BLOCKING AND REPORTING
+===================================================== */
+
+function createSafetyButton(label, className, onClick) {
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = className || "pairhi-safety-button";
+  button.textContent = label;
+  button.addEventListener("click", onClick);
+  return button;
+}
+
+function createReportDialog() {
+  let dialog = discovery$("pairhiReportDialog");
+  if (dialog) return dialog;
+
+  addPairHiDialogStyles();
+
+  dialog = document.createElement("dialog");
+  dialog.id = "pairhiReportDialog";
+  dialog.className = "pairhi-dialog";
+
+  const inner = document.createElement("div");
+  inner.className = "pairhi-dialog-inner";
+
+  const header = document.createElement("div");
+  header.className = "pairhi-dialog-header";
+
+  const heading = document.createElement("h2");
+  heading.textContent = "Report member";
+
+  const close = document.createElement("button");
+  close.type = "button";
+  close.className = "pairhi-close";
+  close.textContent = "×";
+  close.setAttribute("aria-label", "Close report form");
+  close.addEventListener("click", () => dialog.close());
+
+  header.append(heading, close);
+
+  const intro = document.createElement("p");
+  intro.textContent =
+    "Tell us what happened. Reports are private and will be reviewed by the PairHi team.";
+  intro.style.cssText = "color:#766d73;font-size:13px;line-height:1.5";
+
+  const form = document.createElement("form");
+  form.id = "pairhiReportForm";
+
+  const reasonWrap = document.createElement("div");
+  reasonWrap.className = "pairhi-report-field";
+  const reasonLabel = document.createElement("label");
+  reasonLabel.htmlFor = "pairhiReportReason";
+  reasonLabel.textContent = "Reason for reporting *";
+  const reason = document.createElement("select");
+  reason.id = "pairhiReportReason";
+  reason.required = true;
+
+  const reasonOptions = [
+    ["", "Select a reason"],
+    ["fake_profile", "Fake or misleading profile"],
+    ["harassment", "Harassment or abusive behaviour"],
+    ["inappropriate_content", "Inappropriate content"],
+    ["scam_or_fraud", "Scam or fraud"],
+    ["already_married", "Already married / relationship status misrepresented"],
+    ["underage", "Underage member"],
+    ["other", "Other concern"]
+  ];
+     reasonOptions.forEach(([value, label]) => {
+    const option = document.createElement("option");
+    option.value = value;
+    option.textContent = label;
+    reason.appendChild(option);
+  });
+  reasonWrap.append(reasonLabel, reason);
+
+  const descriptionWrap = document.createElement("div");
+  descriptionWrap.className = "pairhi-report-field";
+  const descriptionLabel = document.createElement("label");
+  descriptionLabel.htmlFor = "pairhiReportDescription";
+  descriptionLabel.textContent = "Additional details (optional)";
+  const description = document.createElement("textarea");
+  description.id = "pairhiReportDescription";
+  description.maxLength = 1000;
+  description.placeholder = "Share any helpful details (up to 1,000 characters).";
+  descriptionWrap.append(descriptionLabel, description);
+
+  const status = document.createElement("div");
+  status.id = "pairhiReportStatus";
+  status.className = "pairhi-chat-status";
+  status.setAttribute("role", "status");
+  status.setAttribute("aria-live", "polite");
+
+  const actions = document.createElement("div");
+  actions.style.cssText = "display:flex;gap:9px;flex-wrap:wrap;margin-top:12px";
+
+  const submit = document.createElement("button");
+  submit.type = "submit";
+  submit.className = "pairhi-action-button";
+  submit.textContent = "Submit report";
+
+  const cancel = document.createElement("button");
+  cancel.type = "button";
+  cancel.className = "pairhi-secondary-button";
+  cancel.textContent = "Cancel";
+  cancel.addEventListener("click", () => dialog.close());
+
+  actions.append(submit, cancel);
+  form.append(reasonWrap, descriptionWrap, status, actions);
+  inner.append(header, intro, form);
+  dialog.appendChild(inner);
+  document.body.appendChild(dialog);
+
+  form.addEventListener("submit", submitPairHiReport);
+  return dialog;
+}
+
+function openPairHiReport(targetUserId) {
+  if (!discoveryUser) {
+    discoveryMessage("Please log in before submitting a report.");
+    return;
+  }
+  if (!targetUserId || targetUserId === discoveryUser.id) return;
+
+  const dialog = createReportDialog();
+  dialog.dataset.reportedUserId = targetUserId;
+  const form = discovery$("pairhiReportForm");
+  if (form) form.reset();
+  const status = discovery$("pairhiReportStatus");
+  if (status) status.textContent = "";
+  if (!dialog.open) dialog.showModal();
+}
+
+async function submitPairHiReport(event) {
+  event.preventDefault();
+
+  const dialog = discovery$("pairhiReportDialog");
+  const reason = discovery$("pairhiReportReason");
+  const description = discovery$("pairhiReportDescription");
+  const status = discovery$("pairhiReportStatus");
+  const submit = discovery$("pairhiReportForm")?.querySelector('button[type="submit"]');
+  const reportedUserId = dialog?.dataset.reportedUserId;
+
+  if (!discoveryUser || !reportedUserId || !reason || !reason.value) {
+    if (status) status.textContent = "Please select a report reason.";
+    return;
+  }
+
+  if (submit) submit.disabled = true;
+  if (status) status.textContent = "Submitting your report...";
+
+  try {
+    const { error } = await supabaseClient
+      .from("pairhi_reports")
+      .insert({
+        reporter_id: discoveryUser.id,
+        reported_user_id: reportedUserId,
+        reason: reason.value,
+        description: description?.value.trim() || null
+      });
+
+    if (error) throw error;
+
+    if (status) status.textContent = "Thank you. Your report has been submitted for review.";
+    window.setTimeout(() => {
+      if (dialog?.open) dialog.close();
+      discoveryMessage("Your report has been submitted privately to the PairHi team.");
+    }, 900);
+  } catch (error) {
+    console.error("PairHi report submission error:", error);
+    if (status) status.textContent = "Could not submit report: " + error.message;
+  } finally {
+    if (submit) submit.disabled = false;
+  }
+}
+
+async function blockPairHiMember(targetUserId, matchId = null) {
+  if (!discoveryUser || !targetUserId || targetUserId === discoveryUser.id) return;
+
+  const confirmed = window.confirm(
+    "Block this member? They will disappear from your discovery and mutual matches, and you will not be able to message each other."
+  );
+  if (!confirmed) return;
+
+  try {
+    discoveryMessage("Blocking this member...");
+
+    const { error } = await supabaseClient
+      .from("pairhi_blocks")
+      .insert({
+        blocker_id: discoveryUser.id,
+        blocked_id: targetUserId
+      });
+
+    if (error && error.code !== "23505") throw error;
+
+    discoveryBlockedIds.add(targetUserId);
+
+    if (matchId && activeChatMatchId === matchId) {
+      const chatDialog = discovery$("pairhiChatDialog");
+      if (chatDialog?.open) chatDialog.close();
+      stopChatRealtime();
+      activeChatMatchId = null;
+    }
+
+    const profileDialog = discovery$("pairhiProfileDialog");
+    if (profileDialog?.open) profileDialog.close();
+
+    discoveryMessage("Member blocked. Their profile and conversation are now hidden from you.");
+    await loadDiscovery();
+  } catch (error) {
+    console.error("PairHi block error:", error);
+    discoveryMessage("Could not block this member: " + error.message);
+  }
 }
 
 /* =====================================================
@@ -461,6 +729,18 @@ async function openMatchedProfile(matchId) {
 
   actions.append(messageButton, closeButton);
   content.appendChild(actions);
+
+  const safetyActions = document.createElement("div");
+  safetyActions.className = "pairhi-safety-actions";
+  safetyActions.append(
+    createSafetyButton("Report member", "pairhi-safety-button", () => {
+      openPairHiReport(member.id);
+    }),
+    createSafetyButton("Block member", "pairhi-safety-button pairhi-danger-button", () => {
+      blockPairHiMember(member.id, matchId);
+    })
+  );
+  content.appendChild(safetyActions);
 
   if (!dialog.open) dialog.showModal();
 }
@@ -616,7 +896,7 @@ async function loadPairHiMessages(matchId) {
     .from("messages")
     .select("id,match_id,sender_id,content,created_at")
     .eq("match_id", matchId)
-    .order("created_at", { ascending: true });
+       .order("created_at", { ascending: true });
 
   if (error) throw error;
 
@@ -1025,6 +1305,7 @@ async function loadDiscovery() {
       discoveryUser = null;
       discoveryMatchedIds = new Set();
       discoveryMatchRecords = new Map();
+      discoveryBlockedIds = new Set();
       showMatchSection([]);
 
       discoveryMessage(
@@ -1062,6 +1343,14 @@ async function loadDiscovery() {
     }
 
     await loadMyMatches(user.id);
+
+    const { data: blockedRows, error: blockedError } =
+      await supabaseClient.rpc("pairhi_get_blocked_user_ids");
+         if (blockedError) throw blockedError;
+
+    discoveryBlockedIds = new Set(
+      (blockedRows || []).map(row => row.blocked_user_id)
+    );
 
     if (
       !myProfile.age ||
@@ -1136,6 +1425,7 @@ async function loadDiscovery() {
       if (alreadyLiked.has(member.id)) return false;
       if (alreadyPassed.has(member.id)) return false;
       if (discoveryMatchedIds.has(member.id)) return false;
+      if (discoveryBlockedIds.has(member.id)) return false;
 
       if (
         member.age < (myProfile.min_age_preference || 18) ||
@@ -1332,8 +1622,28 @@ async function renderRealCandidate() {
     }
   }
 
+  const cardActions = card.querySelector(".actions");
+  if (cardActions) {
+    const oldSafetyActions = discovery$("pairhiDiscoverySafetyActions");
+    if (oldSafetyActions) oldSafetyActions.remove();
+
+    const safetyActions = document.createElement("div");
+    safetyActions.id = "pairhiDiscoverySafetyActions";
+    safetyActions.className = "pairhi-safety-actions";
+    safetyActions.style.cssText = "justify-content:center;margin-top:10px";
+    safetyActions.append(
+      createSafetyButton("Report profile", "pairhi-safety-button", () => {
+        openPairHiReport(member.id);
+      }),
+      createSafetyButton("Block profile", "pairhi-safety-button pairhi-danger-button", () => {
+        blockPairHiMember(member.id);
+      })
+    );
+    cardActions.insertAdjacentElement("afterend", safetyActions);
+  }
+
   discoveryMessage(
-    "Review this approved member and choose Interested or Pass."
+    "Review this approved member and choose Interested or Pass. You can also report or block a profile."
   );
 }
 
