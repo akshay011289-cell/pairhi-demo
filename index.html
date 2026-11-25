@@ -27,7 +27,12 @@
     </span>
   </a>
 
-  <nav>
+  <nav style="display:flex;gap:8px;align-items:center">
+    <button class="primary" id="loginOpenBtn" type="button"
+      onclick="openPairHiAuthDialog()">
+      Log in / Sign up
+    </button>
+
     <button class="outline" id="logoutBtn" type="button" hidden>
       Log out
     </button>
@@ -587,6 +592,19 @@ function showPairHiPage(page, shouldSave = true) {
   }
 }
 
+function openPairHiAuthDialog() {
+  const dialog = document.getElementById("profileDialog");
+
+  if (!dialog) {
+    alert("Login window could not be found. Please refresh PairHi.");
+    return;
+  }
+
+  if (!dialog.open) {
+    dialog.showModal();
+  }
+}
+
 function toggleProfileSettings(id) {
   const target = document.getElementById(id);
   if (!target) return;
@@ -629,10 +647,70 @@ function toggleProfileSettings(id) {
   }, { passive: true });
 })();
 
-// Restore the last page after the app and its scripts have loaded.
+// Restore the correct page according to authentication status.
+window.addEventListener("load", async function() {
+  const loginButton = document.getElementById("loginOpenBtn");
+  const logoutButton = document.getElementById("logoutBtn");
+  const authDialog = document.getElementById("profileDialog");
+
+  function updateAuthButtons(isLoggedIn) {
+    if (loginButton) loginButton.hidden = isLoggedIn;
+    if (logoutButton) logoutButton.hidden = !isLoggedIn;
+  }
+
+  try {
+    if (!window.supabaseClient) {
+      updateAuthButtons(false);
+      showPairHiPage("home", false);
+      return;
+    }
+
+    const { data, error } =
+      await window.supabaseClient.auth.getSession();
+
+    if (error) throw error;
+
+    const isLoggedIn = !!data.session;
+
+    updateAuthButtons(isLoggedIn);
+
+    if (isLoggedIn) {
+      const savedPage = getSavedPairHiPage();
+      showPairHiPage(savedPage, false);
+    } else {
+      showPairHiPage("home", false);
+
+      if (authDialog && !authDialog.open) {
+        authDialog.showModal();
+      }
+    }
+
+  } catch (error) {
+    console.error("PAIRHI AUTH RESTORE ERROR:", error);
+    updateAuthButtons(false);
+    showPairHiPage("home", false);
+  }
+});
+
+// Keep the buttons updated after login and logout.
 window.addEventListener("load", function() {
-  const savedPage = getSavedPairHiPage();
-  showPairHiPage(savedPage, false);
+  if (!window.supabaseClient) return;
+
+  window.supabaseClient.auth.onAuthStateChange(
+    (event, session) => {
+      const loginButton = document.getElementById("loginOpenBtn");
+      const logoutButton = document.getElementById("logoutBtn");
+
+      const isLoggedIn = !!session;
+
+      if (loginButton) loginButton.hidden = isLoggedIn;
+      if (logoutButton) logoutButton.hidden = !isLoggedIn;
+
+      if (event === "SIGNED_OUT") {
+        showPairHiPage("home");
+      }
+    }
+  );
 });
 </script>
 
@@ -655,8 +733,8 @@ window.addEventListener("unhandledrejection", function(event) {
 
 <!-- SUPABASE AND APPLICATION SCRIPTS -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="app.js?v=20261122layout1"></script>
-<script src="discovery.js?v=20261122layout1"></script>
+<script src="app.js?v=20261125authfix1"></script>
+<script src="discovery.js?v=20261125authfix1"></script>
 
 </body>
 </html>
