@@ -546,78 +546,416 @@ async function ensureUserProfile(user) {
 }
 
 // ======================================
-// PROFILE SUMMARY ON MY PROFILE PAGE
+// MY PROFILE PREVIEW + EDITOR
 // ======================================
+
+function addMyProfileStyles() {
+  if ($("pairhiMyProfileStyles")) return;
+
+  const style = document.createElement("style");
+  style.id = "pairhiMyProfileStyles";
+  style.textContent = `
+    #myProfileSummary { width:100%; }
+    .ph-profile-card {
+      overflow:hidden;
+      border:1px solid #f0dce4;
+      border-radius:22px;
+      background:#fff;
+      box-shadow:0 12px 34px rgba(91,28,56,.08);
+    }
+    .ph-profile-hero {
+      position:relative;
+      min-height:320px;
+      background:linear-gradient(145deg,#f8dce7,#fceef3 55%,#f7d6e3);
+      overflow:hidden;
+    }
+    .ph-profile-hero img {
+      display:block;
+      width:100%;
+      height:360px;
+      object-fit:cover;
+      object-position:center 35%;
+    }
+    .ph-profile-photo-placeholder {
+      height:320px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      color:#b04b75;
+      font-size:76px;
+    }
+    .ph-profile-hero-shade {
+      position:absolute;
+      inset:35% 0 0;
+      background:linear-gradient(transparent,rgba(30,9,20,.76));
+      pointer-events:none;
+    }
+    .ph-profile-hero-copy {
+      position:absolute;
+      left:20px;
+      right:20px;
+      bottom:20px;
+      color:white;
+      z-index:1;
+      text-shadow:0 2px 12px rgba(0,0,0,.3);
+    }
+    .ph-profile-name {
+      font-size:27px;
+      line-height:1.15;
+      font-weight:850;
+      letter-spacing:-.4px;
+      color:white;
+      overflow-wrap:anywhere;
+    }
+    .ph-profile-basics {
+      margin-top:7px;
+      font-size:14px;
+      font-weight:600;
+      color:#fff;
+    }
+    .ph-profile-status {
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      margin-top:11px;
+      padding:6px 11px;
+      border-radius:30px;
+      background:rgba(255,255,255,.94);
+      color:#8e2853;
+      font-size:11px;
+      font-weight:800;
+      text-shadow:none;
+    }
+    .ph-profile-content { padding:18px; }
+    .ph-profile-goal {
+      padding:14px 15px;
+      border-radius:15px;
+      background:linear-gradient(120deg,#fff0f5,#fff8fa);
+      border:1px solid #f4d8e3;
+      color:#922d59;
+      font-size:14px;
+      font-weight:800;
+      line-height:1.5;
+    }
+    .ph-profile-section {
+      padding:17px 0;
+      border-bottom:1px solid #f2e8ec;
+    }
+    .ph-profile-section:last-of-type { border-bottom:0; }
+    .ph-profile-section h3 {
+      margin:0 0 9px;
+      color:#702443;
+      font-size:15px;
+      font-weight:850;
+    }
+    .ph-profile-section p {
+      margin:0;
+      color:#66535e;
+      font-size:14px;
+      line-height:1.75;
+      overflow-wrap:anywhere;
+      white-space:pre-wrap;
+    }
+    .ph-profile-facts {
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:10px;
+    }
+    .ph-profile-fact {
+      min-width:0;
+      padding:12px;
+      border-radius:13px;
+      background:#fff8fa;
+      border:1px solid #f4e5eb;
+    }
+    .ph-profile-fact small {
+      display:block;
+      margin-bottom:5px;
+      color:#967987;
+      font-size:10px;
+      font-weight:800;
+      text-transform:uppercase;
+      letter-spacing:.65px;
+    }
+    .ph-profile-fact strong {
+      display:block;
+      color:#553344;
+      font-size:13px;
+      line-height:1.45;
+      overflow-wrap:anywhere;
+    }
+    .ph-profile-tags {
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+    }
+    .ph-profile-tag {
+      padding:8px 11px;
+      border-radius:30px;
+      background:#fff0f5;
+      border:1px solid #f3d8e3;
+      color:#9a315d;
+      font-size:12px;
+      font-weight:700;
+    }
+    .ph-profile-edit-btn {
+      width:100%;
+      margin-top:16px;
+      padding:14px 18px;
+      border:0;
+      border-radius:14px;
+      background:linear-gradient(100deg,#ed294e,#d62c83);
+      color:white;
+      font-size:14px;
+      font-weight:800;
+      cursor:pointer;
+      box-shadow:0 7px 18px rgba(214,44,105,.2);
+    }
+    .ph-profile-empty {
+      padding:22px 16px;
+      text-align:center;
+      color:#765969;
+      line-height:1.7;
+    }
+    .ph-profile-editor-actions {
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      margin:0 0 16px;
+    }
+    .ph-profile-cancel-btn {
+      padding:11px 16px;
+      border:1px solid #e8cbd7;
+      border-radius:10px;
+      background:#fff;
+      color:#8d3158;
+      font-weight:750;
+      cursor:pointer;
+    }
+    @media (max-width:420px) {
+      .ph-profile-hero img { height:330px; }
+      .ph-profile-content { padding:15px; }
+      .ph-profile-name { font-size:24px; }
+      .ph-profile-facts { gap:8px; }
+    }
+  `;
+  document.head.appendChild(style);
+}
+
+function profileText(value, fallback = "Not added yet") {
+  const text = String(value ?? "").trim();
+  return text || fallback;
+}
+
+function addProfileSection(container, heading, content) {
+  const section = document.createElement("section");
+  section.className = "ph-profile-section";
+
+  const title = document.createElement("h3");
+  title.textContent = heading;
+  section.appendChild(title);
+
+  if (content instanceof Node) {
+    section.appendChild(content);
+  } else {
+    const paragraph = document.createElement("p");
+    paragraph.textContent = profileText(content);
+    section.appendChild(paragraph);
+  }
+
+  container.appendChild(section);
+  return section;
+}
+
+function addProfileFact(grid, label, value) {
+  const fact = document.createElement("div");
+  fact.className = "ph-profile-fact";
+
+  const caption = document.createElement("small");
+  caption.textContent = label;
+
+  const text = document.createElement("strong");
+  text.textContent = profileText(value);
+
+  fact.append(caption, text);
+  grid.appendChild(fact);
+}
+
+function setProfileEditorVisible(visible) {
+  const form = $("editProfileForm");
+  if (!form) return;
+
+  const panel = form.closest(".pairhi-panel");
+  const heading = panel?.previousElementSibling;
+
+  if (panel) panel.hidden = !visible;
+  if (heading && heading.classList.contains("pairhi-section-title")) {
+    heading.hidden = !visible;
+  }
+
+  const summary = $("myProfileSummary");
+  const editButton = summary?.querySelector(".ph-profile-edit-btn");
+  if (editButton) editButton.hidden = visible;
+
+  if (visible) {
+    window.setTimeout(() => {
+      if (heading) heading.scrollIntoView({ behavior: "smooth", block: "start" });
+      else panel?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 50);
+  }
+}
+
+function setupMyProfileEditor() {
+  const form = $("editProfileForm");
+  if (!form || form.dataset.pairhiEditorReady === "true") return;
+
+  const panel = form.closest(".pairhi-panel");
+  const heading = panel?.previousElementSibling;
+
+  if (!panel) return;
+
+  form.dataset.pairhiEditorReady = "true";
+
+  const actions = document.createElement("div");
+  actions.className = "ph-profile-editor-actions";
+
+  const cancelButton = document.createElement("button");
+  cancelButton.type = "button";
+  cancelButton.className = "ph-profile-cancel-btn";
+  cancelButton.textContent = "Cancel editing";
+  cancelButton.addEventListener("click", () => {
+    setProfileEditorVisible(false);
+    $("myProfileSummary")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  });
+
+  actions.appendChild(cancelButton);
+  form.parentNode.insertBefore(actions, form);
+
+  panel.hidden = true;
+  if (heading && heading.classList.contains("pairhi-section-title")) {
+    heading.hidden = true;
+  }
+}
 
 function renderMyProfileSummary(profile) {
   const container = $("myProfileSummary");
   if (!container) return;
 
+  addMyProfileStyles();
+  setupMyProfileEditor();
   container.replaceChildren();
 
-  const wrapper = document.createElement("div");
-  wrapper.style.cssText =
-    "display:flex;align-items:center;gap:14px;flex-wrap:wrap;" +
-    "padding:16px;border-radius:16px;" +
-    "background:linear-gradient(135deg,#fff0f5,#fff8fa);" +
-    "border:1px solid #f4d5e1;";
+  const card = document.createElement("article");
+  card.className = "ph-profile-card";
 
-  const photo = document.createElement("img");
-  photo.alt = "Your PairHi profile photo";
-  photo.style.cssText =
-    "width:84px;height:84px;border-radius:50%;" +
-    "object-fit:cover;border:3px solid white;" +
-    "box-shadow:0 3px 12px rgba(120,30,70,.15);";
+  const hero = document.createElement("div");
+  hero.className = "ph-profile-hero";
 
   const photoPath = profile.photo_url || "";
-
   if (photoPath) {
+    const photo = document.createElement("img");
+    photo.alt = "Your PairHi profile photograph";
+    photo.loading = "eager";
+    photo.decoding = "async";
+    hero.appendChild(photo);
+
     supabaseClient.storage
       .from("profile-photos")
       .createSignedUrl(photoPath, 3600)
       .then(({ data, error }) => {
-        if (!error && data?.signedUrl) {
+        if (!error && data?.signedUrl && photo.isConnected) {
           photo.src = data.signedUrl;
         }
       })
-      .catch(error => {
-        console.warn("Profile summary photo:", error);
-      });
+      .catch(error => console.warn("Profile preview photo:", error));
+  } else {
+    const placeholder = document.createElement("div");
+    placeholder.className = "ph-profile-photo-placeholder";
+    placeholder.textContent = "♥";
+    hero.appendChild(placeholder);
   }
 
-  const details = document.createElement("div");
-  details.style.cssText = "flex:1;min-width:150px;";
+  const shade = document.createElement("div");
+  shade.className = "ph-profile-hero-shade";
+
+  const heroCopy = document.createElement("div");
+  heroCopy.className = "ph-profile-hero-copy";
 
   const name = document.createElement("div");
-  name.textContent = profile.display_name || "PairHi Member";
-  name.style.cssText =
-    "font-size:20px;font-weight:800;color:#702443;";
+  name.className = "ph-profile-name";
+  name.textContent = profileText(profile.display_name, "Your name");
 
   const basics = document.createElement("div");
+  basics.className = "ph-profile-basics";
   const basicParts = [];
-
   if (profile.age) basicParts.push(String(profile.age));
-  if (profile.city) basicParts.push(profile.city);
+  if (profile.city) basicParts.push(String(profile.city));
+  basics.textContent = basicParts.join("  •  ") || "Complete your profile details";
 
-  basics.textContent = basicParts.join(" • ");
-  basics.style.cssText =
-    "font-size:13px;color:#765969;margin-top:5px;";
+  const status = document.createElement("span");
+  status.className = "ph-profile-status";
+  const approved = String(profile.verification_status || "").toLowerCase() === "approved";
+  status.textContent = approved ? "✓ Verified PairHi profile" :
+    "◷ Profile " + profileText(profile.verification_status, "pending").toLowerCase();
+
+  heroCopy.append(name, basics, status);
+  hero.append(shade, heroCopy);
+
+  const content = document.createElement("div");
+  content.className = "ph-profile-content";
 
   const goal = document.createElement("div");
-  goal.textContent = goalLabel(profile.relationship_goal);
-  goal.style.cssText =
-    "font-size:12px;font-weight:700;color:#c02d68;margin-top:7px;";
+  goal.className = "ph-profile-goal";
+  goal.textContent = "♥  " + goalLabel(profile.relationship_goal);
+  content.appendChild(goal);
 
-  const status = document.createElement("div");
-  status.textContent =
-    "Profile status: " +
-    (profile.verification_status || "Pending");
-  status.style.cssText =
-    "font-size:11px;color:#77616d;margin-top:6px;";
+  addProfileSection(content, "About me", profile.bio);
 
-  details.append(name, basics, goal, status);
-  wrapper.append(photo, details);
-  container.appendChild(wrapper);
+  const facts = document.createElement("div");
+  facts.className = "ph-profile-facts";
+  addProfileFact(facts, "Gender", profile.gender);
+  addProfileFact(facts, "Marital status", profile.marital_status
+    ? String(profile.marital_status).replace(/_/g, " ")
+    : "");
+  addProfileFact(facts, "Education", profile.education);
+  addProfileFact(facts, "Profession", profile.occupation);
+  addProfileFact(facts, "Preferred city", profile.preferred_city);
+  addProfileFact(facts, "Age preference",
+    (profile.min_age_preference ?? 18) + " – " +
+    (profile.max_age_preference ?? 60) + " years");
+
+  addProfileSection(content, "A little more about you", facts);
+
+  const interestsText = profileText(profile.interests, "");
+  if (interestsText) {
+    const tags = document.createElement("div");
+    tags.className = "ph-profile-tags";
+    interestsText.split(/[,;\n]+/).map(item => item.trim()).filter(Boolean)
+      .slice(0, 24).forEach(item => {
+        const tag = document.createElement("span");
+        tag.className = "ph-profile-tag";
+        tag.textContent = item;
+        tags.appendChild(tag);
+      });
+    addProfileSection(content, "Interests and hobbies", tags);
+  }
+
+  if (String(profile.lifestyle || "").trim()) {
+    addProfileSection(content, "Lifestyle", profile.lifestyle);
+  }
+
+  const editButton = document.createElement("button");
+  editButton.type = "button";
+  editButton.className = "ph-profile-edit-btn";
+  editButton.textContent = "✎  Edit my profile";
+  editButton.addEventListener("click", () => {
+    setProfileEditorVisible(true);
+  });
+
+  card.append(hero, content);
+  container.append(card, editButton);
+
+  setProfileEditorVisible(false);
 }
 
 // ======================================
@@ -739,7 +1077,6 @@ async function openMemberProfile() {
 }
 
 window.openMemberProfile = openMemberProfile;
-
 // ======================================
 // AUTHENTICATION DIALOG
 // ======================================
@@ -1141,6 +1478,7 @@ if ($("editProfileForm")) {
 
       await loadMyPhotoGallery(user.id, photoPath);
       await refreshMyProfileSummary();
+      setProfileEditorVisible(false);
 
       showProfileMessage(
         "Your profile has been saved successfully."
