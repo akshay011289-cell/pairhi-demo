@@ -283,7 +283,11 @@ async function deleteMyProfilePhoto(userId, photoPath) {
 // PRIVATE PROFILE PHOTO GALLERY
 // ======================================
 
+// Prevent overlapping profile loads from appending duplicate gallery tiles.
+let pairhiPhotoGalleryLoadSequence = 0;
+
 async function loadMyPhotoGallery(userId, mainPhotoPath) {
+  const loadSequence = ++pairhiPhotoGalleryLoadSequence;
   const gallery = $("myPhotoGallery");
   const message = $("photoGalleryMessage");
 
@@ -298,6 +302,9 @@ async function loadMyPhotoGallery(userId, mainPhotoPath) {
   try {
     const photoFiles = await getMyPhotoFiles(userId);
 
+    // A newer gallery request has already started; ignore this older result.
+    if (loadSequence !== pairhiPhotoGalleryLoadSequence) return;
+
     if (photoFiles.length === 0) {
       if (message) {
         message.textContent =
@@ -306,7 +313,12 @@ async function loadMyPhotoGallery(userId, mainPhotoPath) {
       return;
     }
 
-    const photos = photoFiles.map(file => ({
+    // Deduplicate by storage path in case the listing contains repeated entries.
+    const uniquePhotoFiles = Array.from(
+      new Map(photoFiles.map(file => [file.name, file])).values()
+    );
+
+    const photos = uniquePhotoFiles.map(file => ({
       name: file.name,
       path: userId + "/" + file.name
     }));
@@ -338,6 +350,9 @@ async function loadMyPhotoGallery(userId, mainPhotoPath) {
     );
 
     const availablePhotos = photoResults.filter(Boolean);
+
+    // Only the most recent request may render into the gallery.
+    if (loadSequence !== pairhiPhotoGalleryLoadSequence) return;
 
     if (availablePhotos.length === 0) {
       if (message) {
@@ -383,6 +398,7 @@ async function loadMyPhotoGallery(userId, mainPhotoPath) {
             "Could not open photograph: " + error.message
           );
         }
+      });
       });
 
       item.appendChild(imageButton);
@@ -472,6 +488,8 @@ async function loadMyPhotoGallery(userId, mainPhotoPath) {
     }
 
   } catch (error) {
+    if (loadSequence !== pairhiPhotoGalleryLoadSequence) return;
+
     console.error("PAIRHI PHOTO GALLERY ERROR:", error);
 
     if (message) {
@@ -1077,6 +1095,7 @@ async function openMemberProfile() {
 }
 
 window.openMemberProfile = openMemberProfile;
+
 // ======================================
 // AUTHENTICATION DIALOG
 // ======================================
