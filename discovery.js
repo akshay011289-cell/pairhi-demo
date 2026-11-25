@@ -2,6 +2,7 @@
 /* =====================================================
    PAIRHI DISCOVERY, MUTUAL MATCHES, PROFILES AND CHAT
    Uses existing Supabase database and RLS policies.
+   Mutual matches appear in Messages only, not Discovery.
 ===================================================== */
 
 let discoveryCandidates = [];
@@ -171,58 +172,11 @@ function addPairHiDialogStyles() {
       min-height:43px;
     }
 
-    .pairhi-match-card {
-      display:flex;
-      align-items:center;
-      gap:12px;
-      padding:13px;
-      margin-bottom:11px;
-      border:1px solid #eadfe3;
-      border-radius:13px;
-      background:#fff;
-    }
-
-    .pairhi-match-avatar {
-      display:block !important;
-      flex:0 0 48px !important;
-      width:48px !important;
-      height:48px !important;
-      min-width:48px !important;
-      min-height:48px !important;
-      max-width:48px !important;
-      max-height:48px !important;
-      aspect-ratio:1 / 1 !important;
-      border-radius:50% !important;
-      object-fit:cover !important;
-      overflow:hidden !important;
-      background:#f5dce6;
-    }
-
-    .pairhi-match-details { flex:1; min-width:0; }
-
-    .pairhi-match-details strong {
+    .pairhi-profile-detail strong {
       display:block;
-      color:#29232a;
-      font-size:15px;
-    }
-
-    .pairhi-match-details small {
-      display:block;
-      color:#766d73;
-      margin-top:4px;
-    }
-
-    .pairhi-match-actions {
-      display:flex;
-      flex-wrap:wrap;
-      gap:7px;
-      margin-top:9px;
-    }
-
-    .pairhi-match-actions button {
+      color:#a52d61;
       font-size:12px;
-      padding:8px 11px;
-      min-height:35px;
+      margin-bottom:4px;
     }
 
     /* Messages inbox */
@@ -504,8 +458,6 @@ function addPairHiDialogStyles() {
 
     @media(max-width:420px) {
       .pairhi-dialog-inner {padding:15px}
-      .pairhi-match-card {align-items:flex-start}
-      .pairhi-match-actions {gap:5px}
       .pairhi-inbox-card {gap:9px;padding:10px}
       .pairhi-inbox-avatar,
       .pairhi-inbox-profile-button,
@@ -582,7 +534,7 @@ function createReportDialog() {
   reason.id = "pairhiReportReason";
   reason.required = true;
 
-  const reasonOptions = [
+  [
     ["", "Select a reason"],
     ["fake_profile", "Fake or misleading profile"],
     ["harassment", "Harassment or abusive behaviour"],
@@ -591,9 +543,7 @@ function createReportDialog() {
     ["already_married", "Already married / relationship status misrepresented"],
     ["underage", "Underage member"],
     ["other", "Other concern"]
-  ];
-
-  reasonOptions.forEach(([value, label]) => {
+  ].forEach(([value, label]) => {
     const option = document.createElement("option");
     option.value = value;
     option.textContent = label;
@@ -758,7 +708,6 @@ async function blockPairHiMember(targetUserId, matchId = null) {
 
 /* =====================================================
    MATCHED MEMBER PROFILE
-   Clicking a member name or photo opens this profile.
 ===================================================== */
 
 function createProfileDialog() {
@@ -927,13 +876,10 @@ function createChatDialog() {
   heading.type = "button";
   heading.className = "pairhi-chat-profile-button";
   heading.textContent = "Messages";
-
   heading.title = "Tap to view this member's profile";
 
   heading.addEventListener("click", () => {
-    if (activeChatMatchId) {
-      openMatchedProfile(activeChatMatchId);
-    }
+    if (activeChatMatchId) openMatchedProfile(activeChatMatchId);
   });
 
   const close = document.createElement("button");
@@ -1025,11 +971,9 @@ function renderChatMessages(rows) {
 
     bubble.className =
       "pairhi-chat-bubble " +
-      (
-        message.sender_id === discoveryUser.id
-          ? "pairhi-chat-mine"
-          : "pairhi-chat-theirs"
-      );
+      (message.sender_id === discoveryUser.id
+        ? "pairhi-chat-mine"
+        : "pairhi-chat-theirs");
 
     const content = document.createElement("div");
     content.textContent = message.content;
@@ -1169,8 +1113,6 @@ async function sendPairHiMessage(event) {
     input.value = "";
 
     await loadPairHiMessages(matchId);
-
-    /* Refresh inbox so the latest message appears there. */
     await loadPairHiInbox();
 
   } catch (error) {
@@ -1186,38 +1128,33 @@ async function sendPairHiMessage(event) {
 
 /* =====================================================
    MATCH DISPLAY ON DISCOVERY
+   Intentionally disabled: matches belong in Messages.
 ===================================================== */
 
 function createMatchSection() {
-  let section = discovery$("pairhiMatches");
-  if (section) return section;
-
-  section = document.createElement("section");
-  section.id = "pairhiMatches";
-
-  section.style.cssText = [
-    "margin:20px auto",
-    "padding:18px",
-    "max-width:900px",
-    "background:#fff",
-    "border:1px solid #eadfe3",
-    "border-radius:16px",
-    "display:none"
-  ].join(";");
-
-  const discoverSection = discovery$("discover");
-
-  if (discoverSection) {
-    const feedback = discovery$("feedback");
-
-    if (feedback && feedback.parentNode) {
-      feedback.parentNode.insertBefore(section, feedback);
-    } else {
-      discoverSection.appendChild(section);
-    }
+  const section = discovery$("pairhiMatches");
+  if (section) {
+    section.replaceChildren();
+    section.style.display = "none";
+    section.hidden = true;
   }
 
   return section;
+}
+
+function showMatchSection() {
+  const section = createMatchSection();
+
+  if (section) {
+    section.replaceChildren();
+    section.style.display = "none";
+    section.hidden = true;
+  }
+
+  /*
+   * Do not render mutual matches on Discovery.
+   * loadMyMatches() still loads match records for Messages and chat.
+   */
 }
 
 function createMatchButton(label, action, matchId, primary) {
@@ -1235,86 +1172,7 @@ function createMatchButton(label, action, matchId, primary) {
   return button;
 }
 
-function showMatchSection(profiles) {
-  const section = createMatchSection();
-  if (!section) return;
-
-  section.replaceChildren();
-
-  if (!profiles || profiles.length === 0) {
-    section.style.display = "none";
-    return;
-  }
-
-  section.style.display = "block";
-
-  const heading = document.createElement("h2");
-  heading.textContent = "♥ Your mutual matches";
-  heading.style.cssText = "color:#a52d61;margin:0 0 10px;font-size:22px";
-
-  const description = document.createElement("p");
-  description.textContent =
-    "Your matches also appear automatically in Messages. Open a profile or start a conversation.";
-  description.style.cssText = "color:#766d73;margin:0 0 15px;font-size:14px";
-
-  section.append(heading, description);
-
-  profiles.forEach(member => {
-    const matchId = member.matchId;
-
-    const card = document.createElement("div");
-    card.className = "pairhi-match-card";
-
-    const avatar = document.createElement("div");
-    avatar.className = "pairhi-match-avatar";
-    avatar.style.cssText =
-      "display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:bold;color:#a52d61";
-
-    avatar.textContent =
-      safeText(member.display_name, "P").charAt(0).toUpperCase();
-
-    const details = document.createElement("div");
-    details.className = "pairhi-match-details";
-
-    const name = document.createElement("strong");
-    name.textContent =
-      safeText(member.display_name, "PairHi Member") +
-      (member.age ? ", " + member.age : "");
-
-    const city = document.createElement("small");
-    city.textContent = safeText(member.city, "City not provided");
-
-    const actions = document.createElement("div");
-    actions.className = "pairhi-match-actions";
-
-    actions.append(
-      createMatchButton("View profile", "profile", matchId, false),
-      createMatchButton("Message", "chat", matchId, true)
-    );
-
-    details.append(name, city, actions);
-    card.append(avatar, details);
-    section.appendChild(card);
-
-    if (member.photo_url) {
-      supabaseClient.storage
-        .from("profile-photos")
-        .createSignedUrl(member.photo_url, 3600)
-        .then(({ data, error }) => {
-          if (!error && data?.signedUrl) {
-            const image = document.createElement("img");
-            image.className = "pairhi-match-avatar";
-            image.src = data.signedUrl;
-            image.alt = "Matched member";
-            image.loading = "lazy";
-            avatar.replaceWith(image);
-          }
-        })
-        .catch(error => console.warn("Match photo error:", error));
-    }
-  });
-}
-
+/* Handles any existing match action buttons safely. */
 document.addEventListener("click", event => {
   const button = event.target.closest("[data-match-action]");
   if (!button) return;
@@ -1331,6 +1189,7 @@ document.addEventListener("click", event => {
 
 /* =====================================================
    LOAD MUTUAL MATCHES
+   Matches are loaded for Messages, never displayed in Discovery.
 ===================================================== */
 
 async function loadMyMatches(userId) {
@@ -1352,8 +1211,10 @@ async function loadMyMatches(userId) {
 
   discoveryMatchRecords = new Map();
 
+  /* Always hide any old Discovery match section. */
+  showMatchSection();
+
   if (matchRows.length === 0) {
-    showMatchSection([]);
     return [];
   }
 
@@ -1371,8 +1232,6 @@ async function loadMyMatches(userId) {
     (profiles || []).map(profile => [profile.id, profile])
   );
 
-  const displayProfiles = [];
-
   matchRows.forEach(match => {
     const otherId =
       match.user1_id === userId ? match.user2_id : match.user1_id;
@@ -1384,14 +1243,7 @@ async function loadMyMatches(userId) {
       match: match,
       profile: profile
     });
-
-    displayProfiles.push({
-      ...profile,
-      matchId: match.id
-    });
   });
-
-  showMatchSection(displayProfiles);
 
   return matchRows;
 }
@@ -1437,7 +1289,6 @@ async function loadPairHiInbox() {
 
     discoveryUser = sessionData.session.user;
 
-    /* Load all existing mutual matches first. */
     const matches = await loadMyMatches(discoveryUser.id);
 
     if (!matches || matches.length === 0) {
@@ -1451,7 +1302,6 @@ async function loadPairHiInbox() {
 
     const matchIds = matches.map(match => match.id);
 
-    /* Existing messages table only; no new table is created. */
     const { data: messageRows, error: messagesError } =
       await supabaseClient
         .from("messages")
@@ -1507,7 +1357,6 @@ async function loadPairHiInbox() {
       const card = document.createElement("div");
       card.className = "pairhi-inbox-card";
 
-      /* Profile photo is a separate clickable control. */
       const avatarButton = document.createElement("button");
       avatarButton.type = "button";
       avatarButton.className = "pairhi-inbox-profile-button";
@@ -1527,7 +1376,6 @@ async function loadPairHiInbox() {
       const details = document.createElement("div");
       details.className = "pairhi-inbox-details";
 
-      /* Tapping the member's name opens their profile. */
       const name = document.createElement("button");
       name.type = "button";
       name.className = "pairhi-inbox-name";
@@ -1559,7 +1407,6 @@ async function loadPairHiInbox() {
 
       details.append(name, preview, time);
 
-      /* Tapping this button opens the private chat. */
       const openButton = document.createElement("button");
       openButton.type = "button";
       openButton.className = "pairhi-inbox-open";
@@ -1630,7 +1477,7 @@ async function loadDiscovery() {
       discoveryMatchRecords = new Map();
       discoveryBlockedIds = new Set();
 
-      showMatchSection([]);
+      showMatchSection();
       discoveryMessage("Please log in to discover approved PairHi members.");
       return;
     }
@@ -1659,7 +1506,7 @@ async function loadDiscovery() {
       return;
     }
 
-    /* Refresh matches so newly matched profiles are immediately known. */
+    /* Load match IDs before building the Discovery deck. */
     await loadMyMatches(user.id);
 
     const { data: blockedRows, error: blockedError } =
@@ -1729,7 +1576,10 @@ async function loadDiscovery() {
 
       if (alreadyLiked.has(member.id)) return false;
       if (alreadyPassed.has(member.id)) return false;
+
+      /* Exclude every existing mutual match from Discovery. */
       if (discoveryMatchedIds.has(member.id)) return false;
+
       if (discoveryBlockedIds.has(member.id)) return false;
 
       if (
@@ -1757,7 +1607,7 @@ async function loadDiscovery() {
 
       if (discoveryMatchedIds.size > 0) {
         discoveryMessage(
-          "Your mutual matches are shown above and in Messages. There are no new compatible profiles to discover right now."
+          "There are no new compatible profiles to discover right now. Your mutual matches are available in Messages."
         );
       } else {
         discoveryMessage(
@@ -1792,7 +1642,7 @@ async function renderRealCandidate() {
     hideDiscoveryCard();
 
     discoveryMessage(
-      "You've viewed all currently available compatible profiles. Your mutual matches are shown above and in Messages."
+      "You've viewed all currently available compatible profiles. Your mutual matches are available in Messages."
     );
 
     return;
@@ -1946,7 +1796,6 @@ async function saveDiscoveryAction(action) {
           "♥ It's a mutual match! This member has been added to Messages automatically. Open Messages to chat or tap their name to view their profile."
         );
 
-        /* Refresh inbox immediately after a mutual match. */
         await loadPairHiInbox();
 
       } else {
