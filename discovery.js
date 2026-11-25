@@ -1,4 +1,3 @@
-
 /* =====================================================
    PAIRHI DISCOVERY, MUTUAL MATCHES, PROFILES AND CHAT
    Uses existing Supabase database and RLS policies.
@@ -850,7 +849,6 @@ async function openMatchedProfile(matchId) {
 
   if (!dialog.open) dialog.showModal();
 }
-
 /* =====================================================
    CHAT DIALOG
 ===================================================== */
@@ -1449,7 +1447,6 @@ async function loadPairHiInbox() {
 }
 
 window.loadPairHiInbox = loadPairHiInbox;
-
 /* =====================================================
    LOAD DISCOVERY
 ===================================================== */
@@ -1833,7 +1830,6 @@ async function saveDiscoveryAction(action) {
     if (passButton) passButton.disabled = false;
   }
 }
-
 /* =====================================================
    BUTTON EVENTS
 ===================================================== */
@@ -1898,23 +1894,56 @@ if (discoveryFooter) {
 }
 
 /* =====================================================
-   AUTHENTICATION LISTENER
+   AUTHENTICATION LISTENER AND SAFE INITIALIZATION
 ===================================================== */
 
-supabaseClient.auth.onAuthStateChange(() => {
-  stopChatRealtime();
+let pairHiDiscoveryInitialized = false;
 
-  window.setTimeout(async () => {
-    await loadDiscovery();
+function initializePairHiDiscovery() {
+  if (pairHiDiscoveryInitialized) return;
 
-    if (discoveryUser) {
-      await loadPairHiInbox();
-    }
-  }, 0);
-});
+  /* app.js creates the Supabase client and exposes it on window. */
+  const client = window.supabaseClient;
 
-/* =====================================================
-   INITIAL LOAD
-===================================================== */
+  if (!client || !client.auth || typeof client.auth.getSession !== "function") {
+    console.error(
+      "PairHi Discovery: Supabase client is not ready. Check that app.js loads before discovery.js."
+    );
+    discoveryMessage(
+      "PairHi is still loading. Please refresh the page. If this continues, contact support."
+    );
+    return;
+  }
 
-loadDiscovery();
+  pairHiDiscoveryInitialized = true;
+
+  client.auth.onAuthStateChange(() => {
+    stopChatRealtime();
+
+    window.setTimeout(async () => {
+      try {
+        await loadDiscovery();
+
+        if (discoveryUser) {
+          await loadPairHiInbox();
+        }
+      } catch (error) {
+        console.error("PairHi authentication refresh error:", error);
+        discoveryMessage("Could not refresh PairHi: " + error.message);
+      }
+    }, 0);
+  });
+
+  loadDiscovery();
+}
+
+/* Wait until the document and preceding app scripts are ready. */
+if (document.readyState === "loading") {
+  document.addEventListener(
+    "DOMContentLoaded",
+    initializePairHiDiscovery,
+    { once: true }
+  );
+} else {
+  initializePairHiDiscovery();
+}
