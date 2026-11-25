@@ -1,4 +1,3 @@
-
 const SUPABASE_URL = "https://nckkelnaxivmynmsktoa.supabase.co";
 const SUPABASE_KEY = "sb_publishable_xlqXiXGxnQ5CXfSKr5DpyQ_WPMIgibr";
 
@@ -317,8 +316,7 @@ async function loadMyPhotoGallery(userId, mainPhotoPath) {
     const uniquePhotoFiles = Array.from(
       new Map(photoFiles.map(file => [file.name, file])).values()
     );
-
-    const photos = uniquePhotoFiles.map(file => ({
+        const photos = uniquePhotoFiles.map(file => ({
       name: file.name,
       path: userId + "/" + file.name
     }));
@@ -398,7 +396,6 @@ async function loadMyPhotoGallery(userId, mainPhotoPath) {
             "Could not open photograph: " + error.message
           );
         }
-      });
       });
 
       item.appendChild(imageButton);
@@ -639,7 +636,8 @@ function addMyProfileStyles() {
       padding:6px 11px;
       border-radius:30px;
       background:rgba(255,255,255,.94);
-      color:#8e2853;
+      
+            color:#8e2853;
       font-size:11px;
       font-weight:800;
       text-shadow:none;
@@ -975,7 +973,6 @@ function renderMyProfileSummary(profile) {
 
   setProfileEditorVisible(false);
 }
-
 // ======================================
 // LOAD MY PROFILE PAGE
 // INLINE PROFILE EDITING — NO EDIT DIALOG
@@ -1279,7 +1276,7 @@ if ($("logoutBtn")) {
 
 async function checkExistingLogin() {
   try {
-    const { data, error } = await supabaseClient.auth.getSession();
+        const { data, error } = await supabaseClient.auth.getSession();
     if (error) throw error;
 
     if (data.session) {
