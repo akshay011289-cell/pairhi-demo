@@ -531,11 +531,37 @@
   </div>
 </dialog>
 
-<!-- PAGE NAVIGATION, SETTINGS AND SWIPE -->
+<!-- PAGE NAVIGATION, PAGE MEMORY, SETTINGS AND SWIPE -->
 <script>
-function showPairHiPage(page) {
-  const allowedPages = ["home", "discover", "messages", "profile"];
-  if (!allowedPages.includes(page)) return;
+const PAIRHI_ALLOWED_PAGES = ["home", "discover", "messages", "profile"];
+const PAIRHI_PAGE_STORAGE_KEY = "pairhiCurrentPage";
+
+function savePairHiPage(page) {
+  try {
+    if (PAIRHI_ALLOWED_PAGES.includes(page)) {
+      localStorage.setItem(PAIRHI_PAGE_STORAGE_KEY, page);
+    }
+  } catch (error) {
+    console.warn("PairHi could not save the current page.", error);
+  }
+}
+
+function getSavedPairHiPage() {
+  try {
+    const savedPage = localStorage.getItem(PAIRHI_PAGE_STORAGE_KEY);
+
+    if (PAIRHI_ALLOWED_PAGES.includes(savedPage)) {
+      return savedPage;
+    }
+  } catch (error) {
+    console.warn("PairHi could not restore the saved page.", error);
+  }
+
+  return "home";
+}
+
+function showPairHiPage(page, shouldSave = true) {
+  if (!PAIRHI_ALLOWED_PAGES.includes(page)) return;
 
   document.querySelectorAll(".pairhi-page").forEach(section => {
     section.classList.toggle("active", section.dataset.page === page);
@@ -547,6 +573,10 @@ function showPairHiPage(page) {
 
   window.scrollTo({ top: 0, behavior: "smooth" });
   window.pairHiCurrentPage = page;
+
+  if (shouldSave) {
+    savePairHiPage(page);
+  }
 
   if (page === "messages" && typeof window.loadPairHiInbox === "function") {
     window.loadPairHiInbox();
@@ -564,7 +594,7 @@ function toggleProfileSettings(id) {
 }
 
 (function() {
-  const pages = ["home", "discover", "messages", "profile"];
+  const pages = PAIRHI_ALLOWED_PAGES;
   let startX = 0;
   let startY = 0;
 
@@ -598,6 +628,12 @@ function toggleProfileSettings(id) {
     }
   }, { passive: true });
 })();
+
+// Restore the last page after the app and its scripts have loaded.
+window.addEventListener("load", function() {
+  const savedPage = getSavedPairHiPage();
+  showPairHiPage(savedPage, false);
+});
 </script>
 
 <!-- ERROR DIAGNOSTICS -->
