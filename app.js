@@ -64,6 +64,16 @@ function showMessage(message) {
   if (messageBox) messageBox.textContent = message;
 }
 
+// Open the existing PairHi login/sign-up dialog from the visible header button.
+window.openPairHiAuthDialog = function openPairHiAuthDialog() {
+  const dialog = $("profileDialog");
+  if (!dialog) {
+    console.error("PAIRHI AUTH ERROR: profileDialog was not found in index.html.");
+    return;
+  }
+  if (!dialog.open) dialog.showModal();
+};
+
 function showProfileMessage(message) {
   const messageBox = $("profileMessage");
   if (messageBox) messageBox.textContent = message;
@@ -495,10 +505,16 @@ async function loadMyPhotoGallery(userId, mainPhotoPath) {
     }
   }
 }
-
 // ======================================
 // CURRENT SIGNED-IN USER
 // ======================================
+
+function updatePairHiAuthButtons(isLoggedIn) {
+  const loginButton = $("loginOpenBtn");
+  const logoutButton = $("logoutBtn");
+  if (loginButton) loginButton.hidden = Boolean(isLoggedIn);
+  if (logoutButton) logoutButton.hidden = !isLoggedIn;
+}
 
 async function getCurrentUser() {
   const { data, error } = await supabaseClient.auth.getSession();
@@ -636,7 +652,7 @@ function addMyProfileStyles() {
       padding:6px 11px;
       border-radius:30px;
       background:rgba(255,255,255,.94);
-      
+
             color:#8e2853;
       font-size:11px;
       font-weight:800;
@@ -972,7 +988,7 @@ function renderMyProfileSummary(profile) {
   container.append(card, editButton);
 
   setProfileEditorVisible(false);
-}
+    }
 // ======================================
 // LOAD MY PROFILE PAGE
 // INLINE PROFILE EDITING — NO EDIT DIALOG
@@ -1143,7 +1159,7 @@ if ($("signupBtn")) {
       if (data.session && data.user) {
         await ensureUserProfile(data.user);
 
-        if ($("logoutBtn")) $("logoutBtn").hidden = false;
+        updatePairHiAuthButtons(true);
 
         showMessage(
           "Account created successfully! Your PairHi profile is saved."
@@ -1199,7 +1215,7 @@ if ($("loginBtn")) {
 
       const savedProfile = await ensureUserProfile(data.user);
 
-      if ($("logoutBtn")) $("logoutBtn").hidden = false;
+      updatePairHiAuthButtons(true);
 
       showMessage(
         "Welcome to PairHi, " +
@@ -1233,7 +1249,6 @@ if ($("loginBtn")) {
     }
   });
 }
-
 // ======================================
 // LOGOUT
 // ======================================
@@ -1280,7 +1295,7 @@ async function checkExistingLogin() {
     if (error) throw error;
 
     if (data.session) {
-      if ($("logoutBtn")) $("logoutBtn").hidden = false;
+      updatePairHiAuthButtons(true);
 
       const savedProfile = await ensureUserProfile(data.session.user);
 
@@ -1293,7 +1308,7 @@ async function checkExistingLogin() {
       await loadMyProfilePage();
 
     } else {
-      if ($("logoutBtn")) $("logoutBtn").hidden = true;
+      updatePairHiAuthButtons(false);
     }
 
   } catch (error) {
@@ -1519,7 +1534,7 @@ if ($("editProfileForm")) {
 
 supabaseClient.auth.onAuthStateChange((event, session) => {
   if (event === "SIGNED_IN" && session?.user) {
-    if ($("logoutBtn")) $("logoutBtn").hidden = false;
+    updatePairHiAuthButtons(true);
 
     // Defer Supabase queries until after the auth event callback.
     setTimeout(async () => {
@@ -1541,7 +1556,7 @@ supabaseClient.auth.onAuthStateChange((event, session) => {
   }
 
   if (event === "SIGNED_OUT") {
-    if ($("logoutBtn")) $("logoutBtn").hidden = true;
+    updatePairHiAuthButtons(false);
   }
 });
 
